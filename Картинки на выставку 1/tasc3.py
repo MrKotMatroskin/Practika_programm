@@ -3,19 +3,24 @@ from pygame.draw import *
 
 pygame.init()
 FPS = 30
-screen = pygame.display.set_mode((794, 1123))  # exactly the same number as in  the original
+
+  #  height and length of display
+a = 794
+b = 1123
+screen = pygame.display.set_mode((794, 1123))  # exactly the same number as in  the original!
 
 white = (255, 255, 255)
 darkwhite = (230,230,230)
-black = (0, 0, 0)
+black = (50, 50, 50)
+darkblack = (0,0,0)
 grey = (100, 100, 100)
 darkgrey = (150,150,150)
 lightgrey = (204, 204, 204)
 
-
+#  drawing background
 rect(screen, (34, 43, 0), [(0, 577), (794, 1123)])
 polygon(screen, (46, 69, 68), [(0, 576), (794, 576), (794, 577), (0, 577)])
-rect(screen, (0, 34, 43), [(0, 0), (794, 576)])  #  drawing bacground
+rect(screen, (0, 34, 43), [(0, 0), (794, 576)]) 
 
 
 def moon (x, y, r, color):
@@ -23,35 +28,68 @@ def moon (x, y, r, color):
     circle(screen, color, (x, y), r)
 
 
-def cloud (x, y, h, k, color):
-	"""
+def cloud (x, y, thickness, ratio, color):
+    
+	'''
 	
-coorfinates of the uppert left corner of correletated rectangle
-h is the thickness of cloud
-k is width / thikness 
+ x,y  are coordinates of the uppert left corner of correletated rectangle
+ratio  is lengh / thickness 
 
-	"""
+	'''
     
-	ellipse(screen, color, [x, y, h * k, h])
+	ellipse(screen, color, [x, y, thickness * ratio, thickness])
 
-def spaceship():
+def spaceship(x,y, size):
+    '''
+
+draws a spaceship on surf, which is blitted on screen
+x,y are the coordinates of upper left corner of
+corresponding to cabin-ellipse rectangle
+size parameter changes the size of the surface
+(>1 == bigger than standart spaceship)
+all the strange numbers are calculated by hand and kindly provided
+by the original author, so the proportions (except headlights) are constant
+
+    '''
 	
-	surf = pygame.Surface((794, 1123))
-	surf.set_colorkey((0,0,0))
-	polygon(surf, white, [(19, 735), (344, 735), (174, 438)])  #  light
+    surf = pygame.Surface((a, b))
+    surf.set_colorkey((0, 0, 0))
+                          
+    polygon(surf, white, [(19, 735), (344, 735), (174, 438)])  #  main light
     
-	ellipse(surf,  darkgrey, [6, 398, 355, 111])  #  body
+    ellipse(surf,  darkgrey, [6, 398, 355, 111])  #  body
     
-	ellipse(surf, lightgrey, [57, 384, 255, 83]) #  cabin
-    
-	
-	ellipse(screen, darkwhite, [25, 443, 43, 18])
-	ellipse(screen, darkwhite, [69, 465, 43, 18])
-	ellipse(screen, darkwhite, [126, 475, 43, 18])
-	ellipse(screen, darkwhite, [191, 477, 43, 18])
-	ellipse(screen, darkwhite, [247, 466, 43, 18])
-	ellipse(screen, darkwhite, [303, 443, 43, 18])
+    ellipse(surf, lightgrey, [57, 384, 255, 83]) #  cabin
 
+
+
+    def headlight(x, y, color):
+        
+        '''
+inner function of spaceship
+draws a  colored headlight in surf,
+x and y are the coordinates of upper left corner of the correspoding rectangle
+
+        '''
+        
+        length = 43
+        thickness = 18
+        
+        ellipse(surf, color, (x, y, length, thickness))
+
+
+
+        
+    Headlights = ([25, 443], [69,465],[126, 475],
+                  [191,477], [303,443], [247, 466])  # tuple of coordinates of upper left corner
+                 
+    
+    for item in Headlights:  #  drawing darkwhite headlights
+        headlight((*item), darkwhite)
+
+    surf = pygame.transform.scale(surf, (round(surf.get_width()*size), round(surf.get_height()*size)))
+
+    screen.blit(surf, (x-57*size, y-384*size))  
 
 def alien(k, x, y, b):
 
@@ -119,17 +157,25 @@ x,y ae the
     '''
 
   #  now we begin drawing
+  #  drawing is not exactly similar, but i guess it's OK
   
 moon(502, 258, 125, white)
 
-Clouds = ([-50, 50, 100, 3, grey], [450, 30, 40, 10, grey], [370, 145, 40, 5, grey],  # tuple of clouds
-		  [-40, 250, 60, 8, grey], [470, 310, 50, 6, grey],  [450, 200, 150, 3, black], 
-		  [300, 150, 40, 10, black], [270, 145, 40, 5, black], [-20, 199, 60, 8, black], 
-		  [600, 310, 50, 6, black]) 
+Clouds = ([-50, 50, 100, 3, grey], [450, 30, 40, 10, grey], #  tuple of clouds
+          [370, 145, 40, 5, grey],[-40, 250, 60, 8, grey],
+          [470, 310, 50, 6, grey],[450, 200, 150, 3, black],
+          [300, 150, 40, 10, black], [270, 145, 40, 5, black],
+          [-20, 199, 60, 8, black], [600, 310, 50, 6, black])
+
 for item in Clouds: # drawing clouds
 	cloud(*item)
 	
-spaceship()
+
+Spaceships = ([57, 384,1],[450, 500,0.3], [600,400, 0.5]) #tuple of spaceships
+
+for item in Spaceships:#  drawing spaceships
+    spaceship(*item )
+
 	
 
 '''
@@ -147,8 +193,5 @@ clock = pygame.time.Clock()
 finished = False
 while not finished:
     clock.tick(FPS)
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            finished = True
 
 pygame.quit()
