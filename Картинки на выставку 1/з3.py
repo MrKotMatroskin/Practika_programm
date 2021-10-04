@@ -25,24 +25,20 @@ def oblako(x, y, h, k, color):
         clr = (51, 51, 51)
     ellipse(screen, clr, [x, y, h * k, h])
 
-
 def korable(x, y, k):
-    x1 = 174 / k
-    y1 = 438 / k
-    dx = x - x1
-    dy = y - y1
-    polygon(screen, (250, 250, 250),
-            [(19 / k + dx, 735 / k + dy), (344 / k + dx, 735 / k + dy), (174 / k + dx, 438 / k + dy)])
-    ellipse(screen, (153, 153, 153), [6 / k + dx, 398 / k + dy, 355 / k, 111 / k])
-    ellipse(screen, (204, 204, 204), [57 / k + dx, 384 / k + dy, 255 / k, 83 / k])
-    ellipse(screen, (230, 230, 230), [25 / k + dx, 443 / k + dy, 43 / k, 18 / k])
-    ellipse(screen, (230, 230, 230), [69 / k + dx, 465 / k + dy, 43 / k, 18 / k])
-    ellipse(screen, (230, 230, 230), [126 / k + dx, 475 / k + dy, 43 / k, 18 / k])
-    ellipse(screen, (230, 230, 230), [191 / k + dx, 477 / k + dy, 43 / k, 18 / k])
-    ellipse(screen, (230, 230, 230), [247 / k + dx, 466 / k + dy, 43 / k, 18 / k])
-    ellipse(screen, (230, 230, 230), [303 / k + dx, 443 / k + dy, 43 / k, 18 / k])
-
-
+    x1=174/k
+    y1=438/k
+    dx=x-x1
+    dy=y-y1
+    polygon(screen, (250, 250, 250), [(19/k+dx, 735/k+dy), (344/k+dx, 735/k+dy), (174/k+dx, 438/k+dy)])
+    ellipse(screen, (153, 153, 153), [6/k+dx, 398/k+dy, 355/k, 111/k])
+    ellipse(screen, (204, 204, 204), [57/k+dx, 384/k+dy, 255/k, 83/k])
+    ellipse(screen, (230, 230, 230), [25/k+dx, 443/k+dy, 43/k, 18/k])
+    ellipse(screen, (230, 230, 230), [69/k+dx, 465/k+dy, 43/k, 18/k])
+    ellipse(screen, (230, 230, 230), [126/k+dx, 475/k+dy, 43/k, 18/k])
+    ellipse(screen, (230, 230, 230), [191/k+dx, 477/k+dy, 43/k, 18/k])
+    ellipse(screen, (230, 230, 230), [247/k+dx, 466/k+dy, 43/k, 18/k])
+    ellipse(screen, (230, 230, 230), [303/k+dx, 443/k+dy, 43/k, 18/k])
 def inp(k, x, y,
         b):  # очевидно функция рисования инопришеленца, k - коэфициент гомотетии, x и y - координаты, куда надо поставить, b - флаг (0 - не отражать, 1 - отразить), все преобразования относительно центра яблочка
     x1 = 647 / k
@@ -98,7 +94,6 @@ def inp(k, x, y,
     circle(screen, (255, 255, 255), (542 / k + dx + b * 2 * (x1 - 542 / k), 711 / k + dy), 5 / k)
     circle(screen, (255, 255, 255), (585 / k + dx + b * 2 * (x1 - 585 / k), 714 / k + dy), 4 / k)
 
-
 luna(502, 258, 125, "white1")
 oblako(-50, 50, 100, 3, "grey")
 oblako(450, 30, 40, 10, "grey")
@@ -111,7 +106,13 @@ oblako(270, 145, 40, 5, "black")
 oblako(-20, 199, 60, 8, "black")
 oblako(600, 310, 50, 6, "black")
 korable(175, 450, 1)
+korable(350, 540, 4)
+korable(660, 440, 2)
 inp(1, 646, 777, 0)
+inp(3, 190, 670, 1)
+inp(3, 70, 740, 1)
+inp(3, 335, 740, 0)
+inp(2, 200, 900, 1)
 
 pygame.display.update()
 clock = pygame.time.Clock()
