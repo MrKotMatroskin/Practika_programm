@@ -4,16 +4,19 @@ from pygame.draw import *
 pygame.init()
 FPS = 30
 
-  #  lenght and hight of display ()
+  #  lenght and hight of display 
 a = 794 
 b = 1123
-  #  size of sky
+
+  #  size of sky (distansefrom upper to lower bound)
 c = 577
-  #  size of dawn(strip)
+
+  #  size of dawn (strip width)
 d = 1
 
 screen = pygame.display.set_mode((a, b))
 
+  #  setting colors
 white = (255, 255, 255)
 darkwhite = (230, 230, 230)
 black = (50, 50, 50)
@@ -28,39 +31,41 @@ darkblue = (0, 34, 43)
 lightblue = (46, 69, 69)
 skin = (221, 233, 175)
 
-  #  drawing background
-rect(screen, darkgreen, [(0, c), (a, b)])
-rect(screen, lightblue, [(0, c - 1), (a, d + 1)])
-rect(screen, darkblue, [(0, 0), (a, c)]) 
-
 
 def moon (x, y, r, color):
-   
+    '''
+Draws a moon.
+
+x,y coordinates of the center.
+
+r = radius
+    '''
     circle(screen, color, (x, y), r)
 
 
 def cloud (x, y, thickness, ratio, color):
-	'''
-	
-x,y  are coordinates of the uppert left corner of correletated rectangle
-ratio  is lengh / thickness 
-
-	'''
     
-	ellipse(screen, color, [x, y, thickness * ratio, thickness])
+    '''
+x,y  are  the coordinates of the upper left corner of correletated rectangle.
+
+ratio  is lengh / thickness.
+    '''
+    
+    ellipse(screen, color, [x, y, thickness * ratio, thickness])
 
 
 def spaceship(x, y, size):
+    
     '''
+Draws a spaceship on ship_surf, which is  then blitted on screen.
 
-draws a spaceship on surf, which is blitted on screen
 x,y are the coordinates of upper left corner of
-corresponding to cabin-ellipse rectangle
-size parameter changes the size of the surface
-(>1 == bigger than standart spaceship)
-all the strange numbers are calculated by hand and kindly provided
-by the original author, so the proportions (except headlights) are constant
+corresponding to cabin-ellipse rectangle.
 
+size (float from 0 to 1) is proportional to the size of the ship.
+Note: one may use floats > 1 for size, but quality significantly drops.
+
+Has inner function for drawing headlightes.
     '''
 	
     ship_surf = pygame.Surface((a, b))
@@ -77,10 +82,11 @@ by the original author, so the proportions (except headlights) are constant
     def headlight(x, y, color):
         
         '''
-inner function of spaceship
-draws a  colored headlight in surf,
-x and y are the coordinates of upper left corner of the correspoding rectangle
+Inner function of spaceship.
 
+Draws a colored headlight in ship_surf.
+
+x and y are the coordinates of upper left corner of the correspoding rectangle.
         '''
         
         length = 43
@@ -89,8 +95,8 @@ x and y are the coordinates of upper left corner of the correspoding rectangle
         ellipse(ship_surf, color, (x, y, length, thickness))
 
 
-    Headlights = ([25, 443], [69,465],
-                  [126, 475],[191,477], [303,443],
+    Headlights = ([25, 443], [69, 465],
+                  [126, 475],[191, 477], [303, 443],
                   [247, 466])  # tuple of coordinates of upper left corner
                  
     
@@ -101,14 +107,19 @@ x and y are the coordinates of upper left corner of the correspoding rectangle
                                        (round(ship_surf.get_width()*size),
                                         round(ship_surf.get_height()*size)))
 
+
     screen.blit(ship_surf, (x - 57*size, y - 384*size))
     
 
 def apple(surface, x, y, size ):
+    
     '''
-draws an apple on surface
->1 size is biger than standart
-x,y are the coordinates of the center
+Draws an apple on given surface.
+
+x,y are the coordinates of the center.
+
+size  (float from 0 to 1)  is propotional to the size of the apple.
+Note: one may use floats > 1 for size, but quality significantly drops.
     '''
     
     apple_surf = pygame.Surface.copy(surface)
@@ -124,9 +135,9 @@ x,y are the coordinates of the center
     polygon(apple_surf, green, [(651, 748),(651, 739), (645, 726),  #  leaf
                                     (642, 726), (641, 729), (646 , 743)])
     
-    polygon(apple_surf, darkblack, [(651 , 748), (651, 739),
+    polygon(apple_surf, darkblack, [(651 , 748), (651, 739),  #  leaf outline
                                     (645, 726), (642, 726),
-                                    (641, 729), (644, 743)], 1)  # leaf outline
+                                    (641, 729), (644, 743)], 1)  
     
     apple_surf = pygame.transform.scale(apple_surf,
                                         (round(apple_surf.get_width()*size),
@@ -137,16 +148,16 @@ x,y are the coordinates of the center
 def alien (x, y, size, turned):
     
     '''
+Draws an alien with an apple
 
-draws an alien
-x,y are the coordinates of apple in its right(to us) hand(?!)
-size>1 means bigger than standart
-orientation can be 0 or 1
-0 - alien looking right
-1 - alien looking left
+x,y are the coordinates of the apple center,it holds (!)
 
+size (float from 0 to 1) is propotional to the size of the alien.
+Note: one may use floats > 1 for size, but quality significantly drops.
 
-
+turned can be 0 or 1.
+0 = alien looking right.
+1 = alien looking left.
     '''
     
     alien_surf = pygame.Surface((a,b))
@@ -158,14 +169,15 @@ orientation can be 0 or 1
     apple(alien_surf, 647, 777, 1)  #  apple in his hand
 
       #  face 
-    polygon(alien_surf, skin, [(539, 770),(560, 770),(609, 689),  
+    polygon(alien_surf, ext_color, [(539, 770),(560, 770),(609, 689),  
                                       (588, 676), (506, 677),(498, 689)])
     ellipse(alien_surf, darkblack, [519, 691, 37, 34])  #  eye left
-    circle(alien_surf, white, (542, 711), 5)  #  inner 
+    circle(alien_surf, white, (542, 711), 5)
     ellipse(alien_surf, darkblack, [569, 698, 25, 26]) #  eye  right
-    circle(alien_surf, white, (585, 714), 4) # inner
+    circle(alien_surf, white, (585, 714), 4) 
 
-    ellipse(alien_surf, ext_color, [512, 761, 56, 117])  #  torso
+    #  torso
+    ellipse(alien_surf, ext_color, [512, 761, 56, 117])
       
       #  right hand
     ellipse(alien_surf, ext_color, [602, 794, 33, 17]) 
@@ -195,7 +207,7 @@ orientation can be 0 or 1
     
       #  right antenna
     circle(alien_surf, ext_color, (601, 676), 10) 
-    ellipse(alien_surf, ext_color, [602 , 659 , 13 , 18])
+    ellipse(alien_surf, ext_color, [602, 659, 13, 18])
     circle(alien_surf, ext_color, (614, 651), 9)
     ellipse(alien_surf, ext_color, [625, 635, 17, 13])
     ellipse(alien_surf, ext_color, [646, 632, 26, 30])
@@ -207,44 +219,38 @@ orientation can be 0 or 1
     
     if turned == 1:
         alien_surf = pygame.transform.flip(alien_surf, True, False)
-        screen.blit(alien_surf,(x - 647*size - (a - 2*647)*size, y - 777*size))
+        screen.blit(alien_surf,(x - size*(a - 647), y - 777*size))
     elif turned == 0:
-        screen.blit(alien_surf,(x - 647*size, y - 777*size))  #rework
+        screen.blit(alien_surf,(x - 647*size, y - 777*size))  
 
-  #  now we begin drawing
-  #  drawing is not exactly similar, but i guess it's OK
+
+  #  data of objects to draw
   
-moon(502, 258, 125, white)
-
 Clouds = ([-50, 50, 100, 3, grey], [450, 30, 40, 10, grey], #  tuple of clouds
           [370, 145, 40, 5, grey],[-40, 250, 60, 8, grey],
           [470, 310, 50, 6, grey],[450, 200, 150, 3, black],
           [300, 150, 40, 10, black], [270, 145, 40, 5, black],
           [-20, 199, 60, 8, black], [600, 310, 50, 6, black])
 
-for item in Clouds: # drawing clouds
-	cloud(*item)
-	
+Spaceships = ([57, 384, 1],[350, 560, 1/4], [600, 420, 1/2])  #  tuple of ships
 
-Spaceships = ([57, 384, 1],[450, 500, 0.3], [600,400, 0.5])  #  tuple of spaceships
+Aliens = ([646, 777, 1, 0], [190, 670, 1/3, 1],  #  tuple of aliens
+          [70, 740, 1/3, 1], [200, 900, 1/2, 1], [335, 740, 1/3, 0])  
 
+
+ #  drawing background
+rect(screen, darkgreen, [(0, c), (a, b)])
+rect(screen, lightblue, [(0, c - 1), (a, d + 1)])
+rect(screen, darkblue, [(0, 0), (a, c)]) 
+moon(502, 258, 125, white)
+
+for item in Clouds:  #  drawing clouds
+    cloud(*item)   
 for item in Spaceships:  #  drawing spaceships
-    spaceship(*item )
-apple(screen, 0, 0, 1)
+    spaceship(*item)   
+for item in Aliens:  #  drawing aliens
+    alien(*item)
 
-alien(500,300,1,0)
-alien(500,300,1,1)
-	
-
-'''
-korable(175, 450, 1)
-korable(350, 540, 4)
-korable(660, 440, 2)
-inp(1, 646, 777, 0)
-inp(3, 190, 670, 1)
-inp(3, 70, 740, 1)
-inp(3, 335, 740, 0)
-inp(2, 200, 900, 1)'''
 
 pygame.display.update()
 clock = pygame.time.Clock()
