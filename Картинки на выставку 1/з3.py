@@ -2,117 +2,257 @@ import pygame
 from pygame.draw import *
 
 pygame.init()
-
 FPS = 30
-screen = pygame.display.set_mode((794, 1123))
-rect(screen, (34, 43, 0), [(0, 577), (794, 1123)])
-polygon(screen, (46, 69, 68), [(0, 576), (794, 576), (794, 577), (0, 577)])
-rect(screen, (0, 34, 43), [(0, 0), (794, 576)])  # нарисовал фон
+
+  #  maximum lenght and hight of display possible
+a = 1920
+b = 1020
+
+  #  length and height of display to use
+height = 1123
+length = 794
+
+    
+  #  size of sky (distanse from upper to lower bound)
+c = 577
+
+  #  size of dawn (strip width)
+d = 1
+
+screen = pygame.display.set_mode((length,height))
+
+  #  setting colors
+white = (255, 255, 255)
+darkwhite = (230, 230, 230)
+black = (50, 50, 50)
+darkblack = (0, 0, 0)
+grey = (100, 100, 100)
+darkgrey = (150, 150, 150)
+lightgrey = (204, 204, 204)
+red = (200, 55, 55)
+darkgreen = (34, 43, 0)
+green = (136, 170, 0)
+darkblue = (0, 34, 43)
+lightblue = (46, 69, 69)
+skin = (221, 233, 175)
 
 
-def luna(x, y, r, color):
-    if color == "white1":
-        cl = (242, 242, 242)
-    if color == "white2":
-        cl = (215, 215, 215)
-    circle(screen, cl, (x, y), r)
+def moon (x, y, r, color):
+    '''
+Draws a moon.
+
+x,y coordinates of the center.
+
+r = radius
+    '''
+    circle(screen, color, (x, y), r)
 
 
-def oblako(x, y, h, k, color):
-    if color == "grey":
-        clr = (102, 102, 102)
-    if color == "black":
-        clr = (51, 51, 51)
-    ellipse(screen, clr, [x, y, h * k, h])
+def cloud (x, y, thickness, ratio, color):
+    
+    '''
+x,y  are  the coordinates of the upper left corner of correletated rectangle.
 
-def korable(x, y, k):
-    x1=174/k
-    y1=438/k
-    dx=x-x1
-    dy=y-y1
-    polygon(screen, (250, 250, 250), [(19/k+dx, 735/k+dy), (344/k+dx, 735/k+dy), (174/k+dx, 438/k+dy)])
-    ellipse(screen, (153, 153, 153), [6/k+dx, 398/k+dy, 355/k, 111/k])
-    ellipse(screen, (204, 204, 204), [57/k+dx, 384/k+dy, 255/k, 83/k])
-    ellipse(screen, (230, 230, 230), [25/k+dx, 443/k+dy, 43/k, 18/k])
-    ellipse(screen, (230, 230, 230), [69/k+dx, 465/k+dy, 43/k, 18/k])
-    ellipse(screen, (230, 230, 230), [126/k+dx, 475/k+dy, 43/k, 18/k])
-    ellipse(screen, (230, 230, 230), [191/k+dx, 477/k+dy, 43/k, 18/k])
-    ellipse(screen, (230, 230, 230), [247/k+dx, 466/k+dy, 43/k, 18/k])
-    ellipse(screen, (230, 230, 230), [303/k+dx, 443/k+dy, 43/k, 18/k])
-def inp(k, x, y,
-        b):  # очевидно функция рисования инопришеленца, k - коэфициент гомотетии, x и y - координаты, куда надо поставить, b - флаг (0 - не отражать, 1 - отразить), все преобразования относительно центра яблочка
-    x1 = 647 / k
-    y1 = 777 / k
-    dx = x - x1
-    dy = y - y1
-    circle(screen, (200, 55, 55), (647 / k + dx, 777 / k + dy), 28 / k)
-    lines(screen, (0, 0, 0), False,
-          [(646 / k + dx + b * 2 * (x1 - 646 / k), 754 / k + dy), (650 / k + dx + b * 2 * (x1 - 650 / k), 746 / k + dy),
-           (663 / k + dx + b * 2 * (x1 - 663 / k), 734 / k + dy)], 2)
-    polygon(screen, (136, 170, 0), [(651 / k + dx + b * 2 * (x1 - 651 / k), 748 / k + dy),
-                                    (651 / k + dx + b * 2 * (x1 - 651 / k), 739 / k + dy),
-                                    (645 / k + dx + b * 2 * (x1 - 645 / k), 726 / k + dy),
-                                    (642 / k + dx + b * 2 * (x1 - 642 / k), 726 / k + dy),
-                                    (641 / k + dx + b * 2 * (x1 - 641 / k), 729 / k + dy),
-                                    (646 / k + dx + b * 2 * (x1 - 646 / k), 743 / k + dy)])
-    polygon(screen, (0, 0, 0), [(651 / k + dx + b * 2 * (x1 - 651 / k), 748 / k + dy),
-                                (651 / k + dx + b * 2 * (x1 - 651 / k), 739 / k + dy),
-                                (645 / k + dx + b * 2 * (x1 - 645 / k), 726 / k + dy),
-                                (642 / k + dx + b * 2 * (x1 - 642 / k), 726 / k + dy),
-                                (641 / k + dx + b * 2 * (x1 - 641 / k), 729 / k + dy),
-                                (644 / k + dx + b * 2 * (x1 - 644 / k), 743 / k + dy)], 1)
-    ellipse(screen, (221, 233, 175), [602 / k + dx + b * ((x1 - 602 / k) * 2 - 33 / k), 794 / k + dy, 33 / k, 17 / k])
-    ellipse(screen, (221, 233, 175), [575 / k + dx + b * ((x1 - 575 / k) * 2 - 27 / k), 785 / k + dy, 27 / k, 19 / k])
-    ellipse(screen, (221, 233, 175), [485 / k + dx + b * ((x1 - 485 / k) * 2 - 26 / k), 789 / k + dy, 26 / k, 18 / k])
-    ellipse(screen, (221, 233, 175), [474 / k + dx + b * ((x1 - 474 / k) * 2 - 15 / k), 808 / k + dy, 15 / k, 17 / k])
-    circle(screen, (221, 233, 175), (575 / k + dx + b * 2 * (x1 - 575 / k), 785 / k + dy), 15 / k)
-    circle(screen, (221, 233, 175), (515 / k + dx + b * 2 * (x1 - 515 / k), 781 / k + dy), 15 / k)
-    circle(screen, (221, 233, 175), (485 / k + dx + b * 2 * (x1 - 485 / k), 915 / k + dy), 15 / k)
-    circle(screen, (221, 233, 175), (589 / k + dx + b * 2 * (x1 - 589 / k), 928 / k + dy), 15 / k)
-    ellipse(screen, (221, 233, 175), [496 / k + dx + b * ((x1 - 496 / k) * 2 - 24 / k), 872 / k + dy, 24 / k, 49 / k])
-    ellipse(screen, (221, 233, 175), [554 / k + dx + b * ((x1 - 554 / k) * 2 - 24 / k), 887 / k + dy, 24 / k, 49 / k])
-    ellipse(screen, (221, 233, 175), [498 / k + dx + b * ((x1 - 498 / k) * 2 - 30 / k), 834 / k + dy, 30 / k, 44 / k])
-    ellipse(screen, (221, 233, 175), [548 / k + dx + b * ((x1 - 548 / k) * 2 - 30 / k), 851 / k + dy, 30 / k, 44 / k])
-    ellipse(screen, (221, 233, 175), [512 / k + dx + b * ((x1 - 512 / k) * 2 - 56 / k), 761 / k + dy, 56 / k, 117 / k])
-    polygon(screen, (221, 233, 175), [(539 / k + dx + b * 2 * (x1 - 539 / k), 770 / k + dy),
-                                      (560 / k + dx + b * 2 * (x1 - 560 / k), 770 / k + dy),
-                                      (609 / k + dx + b * 2 * (x1 - 609 / k), 689 / k + dy),
-                                      (588 / k + dx + b * 2 * (x1 - 588 / k), 676 / k + dy),
-                                      (506 / k + dx + b * 2 * (x1 - 506 / k), 677 / k + dy),
-                                      (498 / k + dx + b * 2 * (x1 - 498 / k), 689 / k + dy)], 0)
-    ellipse(screen, (221, 233, 175), [502 / k + dx + b * ((x1 - 502 / k) * 2 - 13 / k), 660 / k + dy, 13 / k, 18 / k])
-    ellipse(screen, (221, 233, 175), [490 / k + dx + b * ((x1 - 490 / k) * 2 - 19 / k), 642 / k + dy, 19 / k, 21 / k])
-    ellipse(screen, (221, 233, 175), [478 / k + dx + b * ((x1 - 478 / k) * 2 - 23 / k), 629 / k + dy, 23 / k, 15 / k])
-    ellipse(screen, (221, 233, 175), [472 / k + dx + b * ((x1 - 472 / k) * 2 - 28 / k), 609 / k + dy, 28 / k, 23 / k])
-    circle(screen, (221, 233, 175), (601 / k + dx + b * 2 * (x1 - 601 / k), 676 / k + dy), 10 / k)
-    ellipse(screen, (221, 233, 175), [602 / k + dx + b * ((x1 - 602 / k) * 2 - 13 / k), 659 / k + dy, 13 / k, 18 / k])
-    circle(screen, (221, 233, 175), (614 / k + dx + b * 2 * (x1 - 614 / k), 651 / k + dy), 9 / k)
-    ellipse(screen, (221, 233, 175), [625 / k + dx + b * ((x1 - 625 / k) * 2 - 17 / k), 635 / k + dy, 17 / k, 13 / k])
-    ellipse(screen, (221, 233, 175), [646 / k + dx + b * ((x1 - 646 / k) * 2 - 26 / k), 632 / k + dy, 26 / k, 30 / k])
-    ellipse(screen, (0, 0, 0), [519 / k + dx + b * ((x1 - 519 / k) * 2 - 37 / k), 691 / k + dy, 37 / k, 34 / k])
-    ellipse(screen, (0, 0, 0), [569 / k + dx + b * ((x1 - 569 / k) * 2 - 25 / k), 698 / k + dy, 25 / k, 26 / k])
-    circle(screen, (255, 255, 255), (542 / k + dx + b * 2 * (x1 - 542 / k), 711 / k + dy), 5 / k)
-    circle(screen, (255, 255, 255), (585 / k + dx + b * 2 * (x1 - 585 / k), 714 / k + dy), 4 / k)
+ratio  is lengh / thickness.
+    '''
+    
+    ellipse(screen, color, [x, y, thickness * ratio, thickness])
 
-luna(502, 258, 125, "white1")
-oblako(-50, 50, 100, 3, "grey")
-oblako(450, 30, 40, 10, "grey")
-oblako(370, 145, 40, 5, "grey")
-oblako(-40, 250, 60, 8, "grey")
-oblako(470, 310, 50, 6, "grey")
-oblako(450, 200, 150, 3, "black")
-oblako(300, 150, 40, 10, "black")
-oblako(270, 145, 40, 5, "black")
-oblako(-20, 199, 60, 8, "black")
-oblako(600, 310, 50, 6, "black")
-korable(175, 450, 1)
-korable(350, 540, 4)
-korable(660, 440, 2)
-inp(1, 646, 777, 0)
-inp(3, 190, 670, 1)
-inp(3, 70, 740, 1)
-inp(3, 335, 740, 0)
-inp(2, 200, 900, 1)
+
+def spaceship(x, y, size):
+    
+    '''
+Draws a spaceship on ship_surf, which is  then blitted on screen.
+
+x,y are the coordinates of upper left corner of
+corresponding to cabin-ellipse rectangle.
+
+size is proportional to the size of the ship.
+
+Has inner function for drawing headlightes.
+    '''
+	
+    ship_surf = pygame.Surface((round(size*a), round(size*b)))
+    ship_surf.set_colorkey(darkblack)
+                          
+    polygon(ship_surf, white, [(19*size, 735*size), (344*size, 735*size),
+                               (174*size, 438*size)])  #  mainlight
+    
+    ellipse(ship_surf,  darkgrey, [6*size, 398*size,
+                                   355*size, 111*size])  #  body
+    
+    ellipse(ship_surf, lightgrey, [57*size, 384*size,
+                                   255*size, 83*size]) #  cabin
+
+
+
+    def headlight(x, y, color):
+        
+        '''
+Inner function of spaceship.
+
+Draws a colored headlight in ship_surf.
+
+x and y are the coordinates of upper left corner of the correspoding rectangle.
+        '''
+        
+        length = 43*size
+        thickness = 18*size
+        
+        ellipse(ship_surf, color, (x, y, length, thickness))
+
+    #  tuple of coordinates of upper left corner
+    Headlights = ([25*size, 443*size], [69*size, 465*size],
+                  [126*size, 475*size],[191*size, 477*size],
+                  [303*size, 443*size],[247*size, 466*size])  
+                 
+    
+        
+    for item in Headlights:  #  drawing darkwhite headlights
+        headlight((*item), darkwhite)
+
+    screen.blit(ship_surf, (x - 57*size, y - 384*size))
+    
+
+def apple(surface, x, y, size ):
+    
+    '''
+Draws an apple on given surface.
+
+x,y are the coordinates of the center.
+
+size is propotional to the size of the apple.
+
+    '''
+    
+    apple_surf = pygame.Surface((round(size*a), round(size*b)))
+    apple_surf.fill(white)
+    apple_surf.set_colorkey(white)
+    
+    circle(apple_surf, red, (647*size, 777*size), 28*size)  #  apple
+    
+    lines(apple_surf, black, False,  #  stick
+          [(646*size, 754*size), (650*size, 746*size),
+           (663*size, 734*size)], 2)
+    
+    polygon(apple_surf, green, [(651*size, 748*size),  #  leaf
+                                (651*size, 739*size),(645*size, 726*size),
+                                (642*size, 726*size),(641*size, 729*size),
+                                (646*size, 743*size)])
+     #  leaf outline
+    polygon(apple_surf, darkblack, [(651*size, 748*size), (651*size, 739*size), 
+                                    (645*size, 726*size), (642*size, 726*size),
+                                    (641*size, 729*size),
+                                    (644*size, 743*size)], 1)  
+    
+
+
+    surface.blit(apple_surf, (x - 647*size, y - 777*size))
+
+def alien (x, y, size, turned):
+    
+    '''
+Draws an alien with an apple
+
+x,y are the coordinates of the apple center,it holds (!)
+
+size is propotional to the size of the alien.
+
+turned can be 0 or 1.
+0 = alien looking right.
+1 = alien looking left.
+    '''
+    
+    alien_surf = pygame.Surface((round(size*a),round(size*b)))
+    alien_surf.fill(grey)
+    alien_surf.set_colorkey(grey)
+    
+    ext_color = skin
+    
+    apple(alien_surf, 647*size, 777*size, size)  #  apple in his hand
+
+      #  face 
+    polygon(alien_surf, ext_color, [(539*size, 770*size),(560*size, 770*size),
+                                    (609*size, 689*size), (588*size, 676*size),
+                                    (506*size, 677*size),(498*size, 689*size)])
+      #  eye left       
+    ellipse(alien_surf, darkblack, [519*size, 691*size, 37*size, 34*size])
+
+      #  eye  right
+    circle(alien_surf, white, (542*size, 711*size), 5*size)
+    ellipse(alien_surf, darkblack, [569*size, 698*size, 25*size, 26*size]) 
+    circle(alien_surf, white, (585*size, 714*size), 4*size) 
+
+    #  torso
+    ellipse(alien_surf, ext_color, [512*size, 761*size, 56*size, 117*size])
+      
+      #  right hand
+    ellipse(alien_surf, ext_color, [602*size, 794*size, 33*size, 17*size]) 
+    ellipse(alien_surf, ext_color, [575*size, 785*size, 27*size, 19*size])
+    circle(alien_surf, ext_color, (575*size, 785*size), 15*size) 
+
+      #  left hand
+    ellipse(alien_surf, ext_color, [485*size, 789*size, 26*size, 18*size])
+    ellipse(alien_surf, ext_color, [474*size, 808*size, 15*size, 17*size])
+    circle(alien_surf, ext_color, (515*size, 781*size), 15*size) 
+
+      #  left leg
+    circle(alien_surf, ext_color, (485*size, 915*size), 15*size) 
+    ellipse(alien_surf, ext_color, [496*size, 872*size, 24*size, 49*size]) 
+    ellipse(alien_surf, ext_color, [498*size, 834*size, 30*size, 44*size])
+
+      #  right leg
+    circle(alien_surf, ext_color, (589*size, 928*size), 15*size) 
+    ellipse(alien_surf, ext_color, [554*size, 887*size, 24*size, 49*size])    
+    ellipse(alien_surf, ext_color, [548*size, 851*size, 30*size, 44*size]) 
+
+     #  left antenna                               
+    ellipse(alien_surf, ext_color, [502*size, 660*size, 13*size, 18*size]) 
+    ellipse(alien_surf, ext_color, [490*size, 642*size, 19*size, 21*size]) 
+    ellipse(alien_surf, ext_color, [478*size, 629*size, 23*size, 15*size]) 
+    ellipse(alien_surf, ext_color, [472*size, 609*size, 28*size, 23*size]) 
+    
+      #  right antenna
+    circle(alien_surf, ext_color, (601*size, 676*size), 10*size) 
+    ellipse(alien_surf, ext_color, [602*size, 659*size, 13*size, 18*size])
+    circle(alien_surf, ext_color, (614*size, 651*size), 9*size)
+    ellipse(alien_surf, ext_color, [625*size, 635*size, 17*size, 13*size])
+    ellipse(alien_surf, ext_color, [646*size, 632*size, 26*size, 30*size])
+
+
+    if turned == 1:
+        alien_surf = pygame.transform.flip(alien_surf, True, False)
+        screen.blit(alien_surf,(x - (round(a*size) - 647*size), y - 777*size))
+    elif turned == 0:
+        screen.blit(alien_surf,(x - 647*size, y - 777*size))  
+
+
+  #  data of objects to draw
+  
+Clouds = ([-50, 50, 100, 3, grey], [450, 30, 40, 10, grey], #  tuple of clouds
+          [370, 145, 40, 5, grey],[-40, 250, 60, 8, grey],
+          [470, 310, 50, 6, grey],[450, 200, 150, 3, black],
+          [300, 150, 40, 10, black], [270, 145, 40, 5, black],
+          [-20, 199, 60, 8, black], [600, 310, 50, 6, black])
+
+Spaceships = ([57, 384, 1],[350, 560, 1/4], [600, 420, 1/2])  #  tuple of ships
+
+Aliens = ([646, 777, 1, 0], [190, 670, 1/3, 1],  #  tuple of aliens
+          [70, 740, 1/3, 1], [200, 900, 1/2, 1], [335, 740, 1/3, 0])  
+
+
+ #  drawing background
+rect(screen, darkgreen, [(0, c), (a, b)])
+rect(screen, lightblue, [(0, c - 1), (a, d + 1)])
+rect(screen, darkblue, [(0, 0), (a, c)]) 
+moon(502, 258, 125, white)
+
+for item in Clouds:  #  drawing clouds
+    cloud(*item)   
+for item in Spaceships:  #  drawing spaceships
+    spaceship(*item)   
+for item in Aliens:  #  drawing aliens
+    alien(*item)
 
 pygame.display.update()
 clock = pygame.time.Clock()
