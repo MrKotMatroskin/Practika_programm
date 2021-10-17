@@ -8,18 +8,18 @@ zv2 = pygame.mixer.Sound("Звуки/звук_2.ogg")
 zv3 = pygame.mixer.Sound("Звуки/звук_3.ogg")
 pygame.mixer.music.load("Звуки/фон.ogg")
 pygame.mixer.music.play(-1)
-# Частота обновления экрана
-FPS = 60
 
 # Размеры экрана
 a = 1920
 b = 1080
 
-# Количество шаров
+# Частота обновления экрана и ширина/ высота
+screen = pygame.display.set_mode((a, b))
+FPS = 60
+
+# Количество шаров и кубов
 kb = 10
 kk = 10
-
-screen = pygame.display.set_mode((a, b))
 
 # Цвета
 RED = (255, 0, 0)
@@ -210,6 +210,26 @@ y = 0
 kapli = []
 oskolki = []
 Ps = False
+
+q = 0
+
+while q == 0: # Меню игры
+
+    clock.tick(FPS)
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            finished = True
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                q=1
+            else:
+                q=0
+
+    pygame.display.update()
+    screen.fill(GREY)
+
+
 while not finished:
 
     clock.tick(FPS)
