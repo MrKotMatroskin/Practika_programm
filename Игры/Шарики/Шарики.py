@@ -1,8 +1,13 @@
 import pygame
 from pygame.draw import *
 from random import randint
+pygame.mixer.pre_init(44100, -16, 1, 512)
 pygame.init()
-
+zv1 = pygame.mixer.Sound("Звуки/звук_1.ogg")
+zv2 = pygame.mixer.Sound("Звуки/звук_2.ogg")
+zv3 = pygame.mixer.Sound("Звуки/звук_3.ogg")
+pygame.mixer.music.load("Звуки/фон.ogg")
+pygame.mixer.music.play(-1)
 # Частота обновления экрана
 FPS = 60
 
@@ -12,7 +17,7 @@ b = 1080
 
 # Количество шаров
 kb = 10
-kk = 5
+kk = 10
 
 screen = pygame.display.set_mode((a, b))
 
@@ -204,17 +209,27 @@ x = 0
 y = 0
 kapli = []
 oskolki = []
+Ps = False
 while not finished:
 
     clock.tick(FPS)
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             finished = True
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                Ps = not Ps
+                if Ps:
+                    pygame.mixer.music.pause()
+                else:
+                    pygame.mixer.music.unpause()
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
                 x, y = event.pos
                 for ball in balls:
                     if ((ball.x-x)**2+(ball.y-y)**2)**0.5 <= ball.r:
+                        zv2.play()
                         k1 = randint(5, 20)
                         for i in range(k1):
                             kaplya = Kaplya(ball.x, ball.y, ball.color)
@@ -224,6 +239,7 @@ while not finished:
                         balls.append(ball)
                 for kvadrat in kvadrats:
                     if (abs(kvadrat.x - x) + abs(kvadrat.y - y)) <= 2 * kvadrat.r:
+                        zv3.play()
                         k2 = randint(5, 20)
                         for i in range (k2):
                             oskolok = Oskolok(kvadrat.x, kvadrat.y, kvadrat.color)
