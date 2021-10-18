@@ -1,6 +1,7 @@
 import pygame
 from pygame.draw import *
 from random import randint
+pygame.font.init()
 pygame.mixer.pre_init(44100, -16, 1, 512)
 pygame.init()
 zv1 = pygame.mixer.Sound("Звуки/звук_1.ogg")
@@ -9,6 +10,31 @@ zv3 = pygame.mixer.Sound("Звуки/звук_3.ogg")
 pygame.mixer.music.load("Звуки/фон.ogg")
 pygame.mixer.music.play(-1)
 
+# Счетчик времени и тиков
+timecounter = 0
+tickcounter = 0
+
+# Счетчик очков
+ochki = 0
+
+# Массивы для объектов
+balls = []
+kvadrats = []
+
+# Массивы для осколков/ каплей
+kapli = []
+oskolki = []
+
+# Переменные для координат мышки
+x = 0
+y = 0
+
+# Флаг для обработки паузы/ запуска фоновой музыки
+Ps = False
+
+# Флаг для стартового окна
+q = 0
+
 # Размеры экрана
 a = 1920
 b = 1080
@@ -16,6 +42,12 @@ b = 1080
 # Частота обновления экрана и ширина/ высота
 screen = pygame.display.set_mode((a, b))
 FPS = 60
+
+# Создание поверхности с выводом очков
+screensch = pygame.display.set_mode((a, b))
+
+# Создание объекта вывода счета
+schet = pygame.font.Font(None, 36)
 
 # Количество шаров и кубов
 kb = 10
@@ -167,8 +199,10 @@ class Kaplya:
 
     def motion(self):
         self.yspeed = self.yspeed + self.g
-        self.x = self.x + self.xspeed
-        self.y = self.y + self.yspeed
+        self.x = int(self.x + self.xspeed)
+        self.y = int(self.y + self.yspeed)
+        if self.y > a + 10:
+            self.yspeed = 0
     def draw(self):
         circle(screen, self.color, (self.x, self.y), self.r)
 
@@ -185,13 +219,13 @@ class Oskolok:
 
     def motion(self):
         self.yspeed = self.yspeed + self.g
-        self.x = self.x + self.xspeed
-        self.y = self.y + self.yspeed
+        self.x = int(self.x + self.xspeed)
+        self.y = int(self.y + self.yspeed)
+        if self.y > a + 10:
+            self.yspeed = 0
     def draw(self):
         rect(screen, self.color, (self.x - self.r, self.y - self.r, 2*self.r, 2*self.r))
 
-balls = []
-kvadrats = []
 
 for i in range(kb):
     ball = Ball()
@@ -204,14 +238,6 @@ for i in range(kk):
 pygame.display.update()
 clock = pygame.time.Clock()
 finished = False
-
-x = 0
-y = 0
-kapli = []
-oskolki = []
-Ps = False
-
-q = 0
 
 while q == 0: # Меню игры
 
@@ -233,7 +259,8 @@ while q == 0: # Меню игры
 while not finished:
 
     clock.tick(FPS)
-
+    tickcounter = tickcounter + 1
+    timecounter = tickcounter // FPS
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             finished = True
@@ -248,25 +275,42 @@ while not finished:
             if event.button == 1:
                 x, y = event.pos
                 for ball in balls:
-                    if ((ball.x-x)**2+(ball.y-y)**2)**0.5 <= ball.r:
+                    if ((ball.x-x)**2+(ball.y-y)**2)**0.5 <= ball.r+ball.dxconst:
                         zv2.play()
                         k1 = randint(5, 20)
                         for i in range(k1):
-                            kaplya = Kaplya(ball.x, ball.y, ball.color)
+                            kaplya = Kaplya(int(ball.x), int(ball.y), ball.color)
                             kapli.append(kaplya)
                         balls.remove(ball)
                         ball = Ball()
                         balls.append(ball)
+                        ochki = ochki + 10
                 for kvadrat in kvadrats:
                     if (abs(kvadrat.x - x) + abs(kvadrat.y - y)) <= 2 * kvadrat.r:
                         zv3.play()
                         k2 = randint(5, 20)
                         for i in range (k2):
-                            oskolok = Oskolok(kvadrat.x, kvadrat.y, kvadrat.color)
+                            oskolok = Oskolok(int(kvadrat.x), int(kvadrat.y), kvadrat.color)
                             oskolki.append(oskolok)
                         kvadrats.remove(kvadrat)
                         kvadrat = Kvadrat()
                         kvadrats.append(kvadrat)
+                        ochki = ochki + 100
+                        
+    for kaplya in kapli:
+        if kaplya.y > a:
+            kapli.remove(kaplya)
+			
+    for oskolok in oskolki:
+        if oskolok.y > a:
+            oskolki.remove(oskolok)
+			
+    ochk = str(ochki) 
+    time = str(timecounter)                  
+    schetv = schet.render(ochk, True, (180, 0, 0))
+    timev = schet.render(time, True, (180, 0, 0))
+    screensch.blit(schetv, (10, 50))
+    screensch.blit(timev, (10, 100))
     for ball in balls:
         ball.motion()
         ball.draw()
