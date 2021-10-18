@@ -74,7 +74,7 @@ class Ball:
         self.y = randint(0, b)
         self.r = randint(20, 30)
         self.color = COLORS[randint(0, 5)]
-        self.xspeed = randint(-5, 5)
+        self.xspeed = randint(-10, 10)
         self.yspeed = randint(-5, 5)
         self.dx = 10
         self.dy = 10
@@ -188,13 +188,13 @@ class Kvadrat:
 
 class Kaplya:
 
-    def __init__(self, xx, yy, color):
+    def __init__(self, xx, yy, speed, color):
         self.g = 1
         self.x = xx
         self.y = yy
         self.r = randint(5, 10)
         self.color = color
-        self.xspeed = randint(-10, 10)
+        self.xspeed = (randint(-1, 1) + speed)*2
         self.yspeed = randint(-5, 5)
 
     def motion(self):
@@ -208,13 +208,13 @@ class Kaplya:
 
 class Oskolok:
 
-    def __init__(self, xx, yy, color):
+    def __init__(self, xx, yy, speed, color):
         self.g = 1
         self.x = xx
         self.y = yy
         self.r = randint(5, 10)
         self.color = color
-        self.xspeed = randint(-10, 10)
+        self.xspeed = (randint(-1, 1) + speed)*2
         self.yspeed = randint(-5, 5)
 
     def motion(self):
@@ -277,9 +277,9 @@ while not finished:
                 for ball in balls:
                     if ((ball.x-x)**2+(ball.y-y)**2)**0.5 <= ball.r+ball.dxconst:
                         zv2.play()
-                        k1 = randint(5, 20)
+                        k1 = randint(5, 10)
                         for i in range(k1):
-                            kaplya = Kaplya(int(ball.x), int(ball.y), ball.color)
+                            kaplya = Kaplya(int(ball.x), int(ball.y), ball.xspeed, ball.color)
                             kapli.append(kaplya)
                         balls.remove(ball)
                         ball = Ball()
@@ -288,9 +288,9 @@ while not finished:
                 for kvadrat in kvadrats:
                     if (abs(kvadrat.x - x) + abs(kvadrat.y - y)) <= 2 * kvadrat.r:
                         zv3.play()
-                        k2 = randint(5, 20)
+                        k2 = randint(5, 10)
                         for i in range (k2):
-                            oskolok = Oskolok(int(kvadrat.x), int(kvadrat.y), kvadrat.color)
+                            oskolok = Oskolok(int(kvadrat.x), int(kvadrat.y), kvadrat.xspeed, kvadrat.color)
                             oskolki.append(oskolok)
                         kvadrats.remove(kvadrat)
                         kvadrat = Kvadrat()
