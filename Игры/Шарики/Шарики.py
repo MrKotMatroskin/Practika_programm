@@ -1,18 +1,41 @@
+from os import name
 import pygame
+import json
+import pygame.freetype
 from pygame.draw import *
 from random import randint
+
 pygame.font.init()
 pygame.mixer.pre_init(44100, -16, 1, 512)
 pygame.init()
-zv1 = pygame.mixer.Sound("Звуки/звук_1.ogg")
 zv2 = pygame.mixer.Sound("Звуки/звук_2.ogg")
 zv3 = pygame.mixer.Sound("Звуки/звук_3.ogg")
-pygame.mixer.music.load("Звуки/фон.ogg")
-pygame.mixer.music.play(-1)
+fon1 = "Звуки/фон1.ogg"
+fon2 = "Звуки/фон2.ogg"
+fon3 = "Звуки/фон3.ogg"
+fon4 = "Звуки/фон4.ogg"
+MUSIC = [fon1, fon2, fon3, fon4]
+
+# Переменные для циклов
+clock = pygame.time.Clock()
+finished1 = False
+finished2 = False
+finished3 = False
+finished4 = False
+
+# Громкость музыки и выбор музыки
+track = 0
+vol = 0.5
+
+# Задание параметров текста
+my_font = pygame.freetype.SysFont(None, 35)
 
 # Счетчик времени и тиков
 timecounter = 0
 tickcounter = 0
+
+# Время игровой сессии
+gametime = 1000000
 
 # Счетчик очков
 ochki = 0
@@ -46,8 +69,9 @@ FPS = 60
 # Создание поверхности с выводом очков
 screensch = pygame.display.set_mode((a, b))
 
-# Создание объекта вывода счета
-schet = pygame.font.Font(None, 36)
+# Создание объектов вывода текста
+text1 = pygame.font.Font(None, 72)
+text2 = pygame.font.Font(None, 36)
 
 # Количество шаров и кубов
 kb = 10
@@ -64,10 +88,11 @@ BLACK = (0, 0, 0)
 GREY = (150, 150, 250)
 COLORS = [RED, BLUE, YELLOW, GREEN, MAGENTA, CYAN, BLACK]
 
+
 # Класс объектов "Шар"
 class Ball:
 
-    def __init__(self): # Создание шара
+    def __init__(self):  # Создание шара
         self.gx = 0
         self.gy = 0
         self.x = randint(0, a)
@@ -81,21 +106,21 @@ class Ball:
         self.dxconst = self.dx
         self.dyconst = self.dy
 
-    def motion(self): # Расчет движения шара
+    def motion(self):  # Расчет движения шара
 
-        if (a - self.x - self.r <= self.dx) or (self.x - self.r <= self.dx): # Проверка на наличие ускорения на оси х
+        if (a - self.x - self.r <= self.dx) or (self.x - self.r <= self.dx):  # Проверка на наличие ускорения на оси х
             if min(a - self.x - self.r, self.x - self.r) == (a - self.x - self.r):
-                self.gx = abs(min(a - self.x - self.r, self.x - self.r) / 1000) * -1
+                self.gx = abs(min(a - self.x - self.r, self.x - self.r) / 100) * -1
             else:
-                self.gx = abs(min(a - self.x - self.r, self.x - self.r) / 1000)
+                self.gx = abs(min(a - self.x - self.r, self.x - self.r) / 100)
         else:
             self.gx = 0
 
-        if (b - self.y - self.r <= self.dy) or (self.y - self.r <= self.dy): # Проверка на наличие ускорения на оси у
+        if (b - self.y - self.r <= self.dy) or (self.y - self.r <= self.dy):  # Проверка на наличие ускорения на оси у
             if min(b - self.y - self.r, self.y - self.r) == (b - self.y - self.r):
-                self.gy = abs(min(b - self.y - self.r, self.y - self.r) / 1000) * -1
+                self.gy = abs(min(b - self.y - self.r, self.y - self.r) / 100) * -1
             else:
-                self.gy = abs(min(b - self.y - self.r, self.y - self.r) / 1000)
+                self.gy = abs(min(b - self.y - self.r, self.y - self.r) / 100)
         else:
             self.gy = 0
 
@@ -123,7 +148,7 @@ class Ball:
             self.yspeed = self.yspeed + self.gy
             self.y = self.y + self.yspeed
 
-    def draw(self): # Рисование шара
+    def draw(self):  # Рисование шара
 
         if (self.x + self.r + self.dx <= a) and (self.x - self.r - self.dx >= 0):
             self.dx = self.dxconst
@@ -141,24 +166,26 @@ class Ball:
             if self.y - self.r - self.dy <= 0:
                 self.dy = self.y - self.r
 
-        ellipse(screen, self.color, (self.x - self.r - self.dx, self.y - self.r - self.dy, 2*self.r + 2*self.dx, 2*self.r + 2*self.dy))
+        ellipse(screen, self.color, (
+        self.x - self.r - self.dx, self.y - self.r - self.dy, 2 * self.r + 2 * self.dx, 2 * self.r + 2 * self.dy))
+
 
 # Класс объектов "Квадрат"
 class Kvadrat:
 
-    def __init__(self): # Создание квадрата
+    def __init__(self):  # Создание квадрата
         self.gx = 0
         self.gy = 0
         self.x = randint(0, a)
-        self.y = randint(200, b-100)
+        self.y = randint(200, b - 100)
         self.r = randint(20, 30)
         self.color = COLORS[randint(0, 5)]
-        self.xspeed = 0 #randint(-5, 5)
-        self.yspeed = 0 #randint(-5, 5)
+        self.xspeed = 0  # randint(-5, 5)
+        self.yspeed = 0  # randint(-5, 5)
 
-    def motion(self): # Расчет движения квадрата
-        self.gx = randint(-2, 2)/2
-        self.gy = randint(-1, 1)/2
+    def motion(self):  # Расчет движения квадрата
+        self.gx = randint(-2, 2) / 2
+        self.gy = randint(-1, 1) / 2
         if (self.x + self.r <= a) and (self.x - self.r >= 0):
             self.xspeed = self.xspeed + self.gx
             self.x = self.x + self.xspeed
@@ -183,8 +210,9 @@ class Kvadrat:
             self.yspeed = self.yspeed + self.gy
             self.y = self.y + self.yspeed
 
-    def draw(self): # Рисование квадрата
-        rect(screen, self.color, (self.x - self.r, self.y - self.r, 2*self.r, 2*self.r))
+    def draw(self):  # Рисование квадрата
+        rect(screen, self.color, (self.x - self.r, self.y - self.r, 2 * self.r, 2 * self.r))
+
 
 class Kaplya:
 
@@ -194,7 +222,7 @@ class Kaplya:
         self.y = yy
         self.r = randint(5, 10)
         self.color = color
-        self.xspeed = (randint(-1, 1) + speed)*2
+        self.xspeed = (randint(-1, 1) + speed) * 2
         self.yspeed = randint(-5, 5)
 
     def motion(self):
@@ -203,8 +231,10 @@ class Kaplya:
         self.y = int(self.y + self.yspeed)
         if self.y > a + 10:
             self.yspeed = 0
+
     def draw(self):
         circle(screen, self.color, (self.x, self.y), self.r)
+
 
 class Oskolok:
 
@@ -214,7 +244,7 @@ class Oskolok:
         self.y = yy
         self.r = randint(5, 10)
         self.color = color
-        self.xspeed = (randint(-1, 1) + speed)*2
+        self.xspeed = (randint(-1, 1) + speed) * 2
         self.yspeed = randint(-5, 5)
 
     def motion(self):
@@ -223,8 +253,9 @@ class Oskolok:
         self.y = int(self.y + self.yspeed)
         if self.y > a + 10:
             self.yspeed = 0
+
     def draw(self):
-        rect(screen, self.color, (self.x - self.r, self.y - self.r, 2*self.r, 2*self.r))
+        rect(screen, self.color, (self.x - self.r, self.y - self.r, 2 * self.r, 2 * self.r))
 
 
 for i in range(kb):
@@ -235,47 +266,96 @@ for i in range(kk):
     kvadrat = Kvadrat()
     kvadrats.append(kvadrat)
 
-pygame.display.update()
-clock = pygame.time.Clock()
-finished = False
-
-while q == 0: # Меню игры
+while not finished3:  # Меню игры
 
     clock.tick(FPS)
 
+    text = text1.render("Тапните мышью в любом месте, чтобы продолжить", True, BLUE)
+    screensch.blit(text, (300, 500))
+    text = text1.render("Чтобы изменять музыку, используйте стрелки", True, BLUE)
+    screensch.blit(text, (300, 600))
     for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            finished = True
-        elif event.type == pygame.MOUSEBUTTONDOWN:
+        if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
-                q=1
-            else:
-                q=0
-
-    pygame.display.update()
-    screen.fill(GREY)
-
-
-while not finished:
-
-    clock.tick(FPS)
-    tickcounter = tickcounter + 1
-    timecounter = tickcounter // FPS
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            finished = True
-        elif event.type == pygame.KEYDOWN:
+                finished3 = True
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP:
+                if vol < 1:
+                    vol = vol + 0.1
+                else:
+                    vol = 1
+            elif event.key == pygame.K_DOWN:
+                if vol > 0:
+                    vol = vol - 0.1
+                else:
+                    vol = 0
+            elif event.key == pygame.K_RIGHT:
+                if track < 3:
+                    track = track + 1
+                else:
+                    track = 3
+            elif event.key == pygame.K_LEFT:
+                if track > 0:
+                    track = track - 1
+                else:
+                    track = 0
+            pygame.mixer.music.load(MUSIC[track])
+            pygame.mixer.music.play(-1)
+            pygame.mixer.music.set_volume(vol)
             if event.key == pygame.K_SPACE:
                 Ps = not Ps
                 if Ps:
                     pygame.mixer.music.pause()
                 else:
                     pygame.mixer.music.unpause()
+
+    pygame.display.update()
+    screen.fill(GREY)
+
+while not finished1 and timecounter <= gametime:
+
+    clock.tick(FPS)
+    tickcounter = tickcounter + 1
+    timecounter = tickcounter // FPS
+    for event in pygame.event.get():
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                finished1 = True
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP:
+                    if vol < 1:
+                        vol = vol + 0.1
+                    else:
+                        vol = 1
+                elif event.key == pygame.K_DOWN:
+                    if vol > 0:
+                        vol = vol - 0.1
+                    else:
+                        vol = 0
+                elif event.key == pygame.K_RIGHT:
+                    if track < 3:
+                        track = track + 1
+                    else:
+                        track = 3
+                elif event.key == pygame.K_LEFT:
+                    if track > 0:
+                        track = track - 1
+                    else:
+                        track = 0
+                pygame.mixer.music.load(MUSIC[track])
+                pygame.mixer.music.play(-1)
+                pygame.mixer.music.set_volume(vol)
+                if event.key == pygame.K_SPACE:
+                    Ps = not Ps
+                    if Ps:
+                        pygame.mixer.music.pause()
+                    else:
+                        pygame.mixer.music.unpause()
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
                 x, y = event.pos
                 for ball in balls:
-                    if ((ball.x-x)**2+(ball.y-y)**2)**0.5 <= ball.r+ball.dxconst:
+                    if ((ball.x - x) ** 2 + (ball.y - y) ** 2) ** 0.5 <= ball.r + ball.dxconst + 20:
                         zv2.play()
                         k1 = randint(5, 10)
                         for i in range(k1):
@@ -286,29 +366,27 @@ while not finished:
                         balls.append(ball)
                         ochki = ochki + 10
                 for kvadrat in kvadrats:
-                    if (abs(kvadrat.x - x) + abs(kvadrat.y - y)) <= 2 * kvadrat.r:
+                    if (abs(kvadrat.x - x) + abs(kvadrat.y - y)) <= 2 * kvadrat.r + 10:
                         zv3.play()
                         k2 = randint(5, 10)
-                        for i in range (k2):
+                        for i in range(k2):
                             oskolok = Oskolok(int(kvadrat.x), int(kvadrat.y), kvadrat.xspeed, kvadrat.color)
                             oskolki.append(oskolok)
                         kvadrats.remove(kvadrat)
                         kvadrat = Kvadrat()
                         kvadrats.append(kvadrat)
                         ochki = ochki + 100
-                        
+
     for kaplya in kapli:
         if kaplya.y > a:
             kapli.remove(kaplya)
-			
+
     for oskolok in oskolki:
         if oskolok.y > a:
             oskolki.remove(oskolok)
-			
-    ochk = str(ochki) 
-    time = str(timecounter)                  
-    schetv = schet.render(ochk, True, (180, 0, 0))
-    timev = schet.render(time, True, (180, 0, 0))
+
+    schetv = text2.render("score:" + " " + str(ochki), True, (180, 0, 0))
+    timev = text2.render(str(timecounter) + "/" + str(gametime), True, (180, 0, 0))
     screensch.blit(schetv, (10, 50))
     screensch.blit(timev, (10, 100))
     for ball in balls:
@@ -330,4 +408,40 @@ while not finished:
     pygame.display.update()
     screen.fill(GREY)
 
+pygame.mixer.music.pause()
+
+# Ввод ника
+finished2 = False
+name = ""
+while not finished2:
+    screen.fill(GREY)
+    my_font.render_to(screen, (100, 100), "Введите ник:", BLUE)
+    for event in pygame.event.get():
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RETURN:
+                finished2 = True
+            elif event.key == pygame.K_BACKSPACE:
+                name = name[:-1]
+            else:
+                name += pygame.key.name(event.key)
+        my_font.render_to(screen, (100, 140), name, BLUE)
+        pygame.display.update()
+
+with open("рекорды.json") as f:
+    data = json.load(f)
+data[name] = ochki
+h = 30
+
+# Выводим таблицу рекордов
+for k, v in data.items():
+    my_font.render_to(screen, (20, h), k + ":=" + str(v), (255, 255, 255))
+    h = h + 30
+pygame.display.update()
+finished = False
+while not finished:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            finished = True
+with open("рекорды.json", 'w') as f:
+    json.dump(data, f)
 pygame.quit()
