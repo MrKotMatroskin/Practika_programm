@@ -126,7 +126,7 @@ class Gun:
         if self.f2_on:
             if self.f2_power < 100:
                 self.f2_power += 1
-            self.color = RED
+            self.color = (int((100 - self.f2_power)*2.5), 0, 0)
         else:
             self.color = GREY
 
