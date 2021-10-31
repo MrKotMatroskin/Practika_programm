@@ -35,7 +35,7 @@ timecounter = 0
 tickcounter = 0
 
 # Время игровой сессии
-gametime = 1000000
+gametime = 60
 
 # Счетчик очков
 ochki = 0

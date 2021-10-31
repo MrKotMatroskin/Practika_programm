@@ -1,10 +1,17 @@
 import math
+import random
 from random import choice
-
 import pygame
+import pygame.freetype
+from pygame.draw import *
 
+pygame.font.init()
+pygame.init()
+screen: pygame.Surface
 
-FPS = 30
+text2 = pygame.font.Font(None, 36)
+schet = 0
+FPS = 60
 
 RED = 0xFF0000
 BLUE = 0x0000FF
@@ -17,12 +24,12 @@ WHITE = 0xFFFFFF
 GREY = 0x7D7D7D
 GAME_COLORS = [RED, BLUE, YELLOW, GREEN, MAGENTA, CYAN]
 
-WIDTH = 800
-HEIGHT = 600
+WIDTH = 1920
+HEIGHT = 1080
 
 
 class Ball:
-    def __init__(self, screen: pygame.Surface, x=40, y=450):
+    def __init__(self, screen: pygame.Surface):
         """ Конструктор класса ball
 
         Args:
@@ -30,8 +37,9 @@ class Ball:
         y - начальное положение мяча по вертикали
         """
         self.screen = screen
-        self.x = x
-        self.y = y
+        self.g = 2
+        self.x = 40
+        self.y = 450
         self.r = 10
         self.vx = 0
         self.vy = 0
@@ -45,27 +53,22 @@ class Ball:
         self.x и self.y с учетом скоростей self.vx и self.vy, силы гравитации, действующей на мяч,
         и стен по краям окна (размер окна 800х600).
         """
-        # FIXME
-        if (self.x + self.r <= WIDTH) and (self.x - self.r >= 0):
+        if self.x + self.r <= WIDTH:
             self.x = self.x + self.vx
         else:
             if self.x + self.r >= WIDTH:
                 self.x = WIDTH - self.r
-            if self.x - self.r <= 0:
-                self.x = self.r
             self.vx = self.vx * -1
             self.x = self.x + self.vx
 
-        if (self.y + self.r <= HEIGHT) and (self.y - self.r >= 0):
-            self.vy = self.vy + 9.8
+        if self.y + self.r <= HEIGHT:
+            self.vy = self.vy + self.g
             self.y = self.y + self.vy
         else:
             if self.y + self.r >= HEIGHT:
                 self.y = HEIGHT - self.r
-            if self.y - self.r <= 0:
-                self.y = self.r
             self.vy = self.vy * -1
-            self.vy = self.vy + 9.8
+            self.vy = self.vy + self.g
             self.y = self.y + self.vy 
         
 
@@ -73,11 +76,10 @@ class Ball:
         pygame.draw.circle(self.screen, self.color, (self.x, self.y), self.r)
 
     def hittest(self, obj):
-        if (obj.x - self.x)**2 + (obj.y - self.y)**2 <= (obj.r + self.r)**2
+        if (obj.x - self.x) ** 2 + (obj.y - self.y) ** 2 <= (obj.r + self.r) ** 2:
             return True
         else:
             return False
-
 
 class Gun:
     def __init__(self, screen):
@@ -102,7 +104,7 @@ class Gun:
         new_ball.r += 5
         self.an = math.atan2((event.pos[1]-new_ball.y), (event.pos[0]-new_ball.x))
         new_ball.vx = self.f2_power * math.cos(self.an)
-        new_ball.vy = - self.f2_power * math.sin(self.an)
+        new_ball.vy = self.f2_power * math.sin(self.an)
         balls.append(new_ball)
         self.f2_on = 0
         self.f2_power = 10
@@ -117,7 +119,8 @@ class Gun:
             self.color = GREY
 
     def draw(self):
-        # FIXIT don't know how to do it
+        #Рисование пушки
+        line(screen, self.color, (20, 450), (math.cos(self.an) * self.f2_power + 20, math.sin(self.an) * self.f2_power + 450), width=7)
 
     def power_up(self):
         if self.f2_on:
@@ -129,29 +132,26 @@ class Gun:
 
 
 class Target:
-    # self.points = 0
-    # self.live = 1
-    # FIXME: don't work!!! How to call this functions when object is created?
-    # self.new_target()
+    def __init__(self):
+        self.points = 0
+        self.live = 1
+        self.new_target()
 
     def new_target(self):
         """ Инициализация новой цели. """
-        x = self.x = rnd(600, 780)
-        y = self.y = rnd(300, 550)
-        r = self.r = rnd(2, 50)
-        color = self.color = RED
+        self.r = random.randint(10, 50)
+        self.x = random.randint(self.r + 100, WIDTH - self.r - 100)
+        self.y = random.randint(self.r + 100, HEIGHT - self.r - 100)
+        self.color = RED
 
-    def hit(self, points=1):
-        """Попадание шарика в цель."""
-        self.points += points
 
     def draw(self):
-        ...
+        circle(screen, self.color, (self.x, self.y), self.r)
 
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-bullet = 0
+bullet = 1
 balls = []
 
 clock = pygame.time.Clock()
@@ -160,14 +160,12 @@ target = Target()
 finished = False
 
 while not finished:
-    screen.fill(WHITE)
+    clock.tick(FPS)
     gun.draw()
     target.draw()
     for b in balls:
         b.draw()
-    pygame.display.update()
 
-    clock.tick(FPS)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             finished = True
@@ -180,10 +178,13 @@ while not finished:
 
     for b in balls:
         b.move()
-        if b.hittest(target) and target.live:
+        if b.hittest(target) == True:
+            schet += 1
             target.live = 0
-            target.hit()
             target.new_target()
     gun.power_up()
-
+    schetv = text2.render("score:" + " " + str(schet), True, (180, 0, 0))
+    screen.blit(schetv, (10, 50))
+    pygame.display.update()
+    screen.fill(WHITE)
 pygame.quit()
