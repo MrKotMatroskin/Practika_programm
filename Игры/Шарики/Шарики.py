@@ -320,7 +320,6 @@ while not finished3:  # Меню игры
     if ch == "bkz1201":
         killzonek = 700
         killzoneb = killzonek
-    print(killzonek)
     pygame.display.update()
     screen.fill(GREY)
 
