@@ -35,7 +35,7 @@ timecounter = 0
 tickcounter = 0
 
 # Время игровой сессии
-gametime = 60
+gametime = 120
 
 # Счетчик очков
 ochki = 0
@@ -43,6 +43,10 @@ ochki = 0
 # Массивы для объектов
 balls = []
 kvadrats = []
+
+# Зона смерти квадратов и шаров
+killzonek = 10
+killzoneb = 20
 
 # Массивы для осколков/ каплей
 kapli = []
@@ -59,8 +63,8 @@ Ps = False
 q = 0
 
 # Размеры экрана
-a = 1920
-b = 1080
+a = 1000
+b = 1000
 
 # Частота обновления экрана и ширина/ высота
 screen = pygame.display.set_mode((a, b))
@@ -265,7 +269,7 @@ for i in range(kb):
 for i in range(kk):
     kvadrat = Kvadrat()
     kvadrats.append(kvadrat)
-
+ch = ""
 while not finished3:  # Меню игры
 
     clock.tick(FPS)
@@ -299,6 +303,11 @@ while not finished3:  # Меню игры
                     track = track - 1
                 else:
                     track = 0
+            elif event.key == pygame.K_BACKSPACE:
+                ch = ch[:-1]
+            elif int(event.key)<=126 and int(event.key)>=33:
+                ch += pygame.key.name(event.key)
+                print(ch)
             pygame.mixer.music.load(MUSIC[track])
             pygame.mixer.music.play(-1)
             pygame.mixer.music.set_volume(vol)
@@ -308,7 +317,10 @@ while not finished3:  # Меню игры
                     pygame.mixer.music.pause()
                 else:
                     pygame.mixer.music.unpause()
-
+    if ch == "bkz1201":
+        killzonek = 700
+        killzoneb = killzonek
+    print(killzonek)
     pygame.display.update()
     screen.fill(GREY)
 
@@ -355,7 +367,7 @@ while not finished1 and timecounter <= gametime:
             if event.button == 1:
                 x, y = event.pos
                 for ball in balls:
-                    if ((ball.x - x) ** 2 + (ball.y - y) ** 2) ** 0.5 <= ball.r + ball.dxconst + 20:
+                    if ((ball.x - x) ** 2 + (ball.y - y) ** 2) ** 0.5 <= ball.r + ball.dxconst + killzoneb:
                         zv2.play()
                         k1 = randint(5, 10)
                         for i in range(k1):
@@ -366,7 +378,7 @@ while not finished1 and timecounter <= gametime:
                         balls.append(ball)
                         ochki = ochki + 10
                 for kvadrat in kvadrats:
-                    if (abs(kvadrat.x - x) + abs(kvadrat.y - y)) <= 2 * kvadrat.r + 10:
+                    if (abs(kvadrat.x - x) + abs(kvadrat.y - y)) <= 2 * kvadrat.r + killzonek:
                         zv3.play()
                         k2 = randint(5, 10)
                         for i in range(k2):
@@ -420,28 +432,36 @@ while not finished2:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN:
                 finished2 = True
+            elif event.key == pygame.K_ESCAPE:
+                finished2 = True
             elif event.key == pygame.K_BACKSPACE:
                 name = name[:-1]
-            else:
+            elif int(event.key)<=126 and int(event.key)>=33 or int(event.key)<=1103 and int(event.key)>=1040:
                 name += pygame.key.name(event.key)
         my_font.render_to(screen, (100, 140), name, BLUE)
         pygame.display.update()
 
-with open("рекорды.json") as f:
+with open(r"r.json") as f:
     data = json.load(f)
 data[name] = ochki
-h = 30
-
+h = 200
 # Выводим таблицу рекордов
+screen.fill(GREY)
+rec = []
 for k, v in data.items():
-    my_font.render_to(screen, (20, h), k + ":=" + str(v), (255, 255, 255))
-    h = h + 30
+    rec.append([v, k])
+rec.sort(reverse=True)
+for i in rec:
+    my_font.render_to(screen, (a/2-50, h), i[1] + ":" + " " + str(i[0]), (255, 255, 255))
+    h += 30
 pygame.display.update()
 finished = False
 while not finished:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             finished = True
-with open("рекорды.json", 'w') as f:
+        elif event.key == pygame.K_ESCAPE:
+            finished = True
+with open(r"r.json", 'w') as f:
     json.dump(data, f)
 pygame.quit()
