@@ -9,15 +9,17 @@ from pygame.draw import *
 
 pygame.font.init()
 pygame.init()
-WIDTH = 1920
-HEIGHT = 1080
+WIDTH = 1500
+HEIGHT = 700
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 boomscr = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
 text2 = pygame.font.Font(None, 36)
 schet = 1999
 schetcounter = 0
 FPS = 60
-tickcounter = FPS
+tickcounter = 0
+tcglobal = 0
+tcshoot = 0
 balls = []
 targets = []
 kapli = []
@@ -25,8 +27,9 @@ booms =[]
 clock = pygame.time.Clock()
 auto = False
 finished = False
-kt = 2
-
+kt = 0
+auto = False # да начнется бойня)
+automouse = False
 RED = 0xFF0000
 BLUE = 0x0000FF
 YELLOW = 0xFFC91F
@@ -73,20 +76,20 @@ class Ball:
 
         if self.y + self.r <= HEIGHT:
             self.vy = self.vy + self.g
-            self.y = self.y + self.vy
+            self.y = self.y + self.vy - 1
         else:
             if self.y + self.r >= HEIGHT:
                 self.y = HEIGHT - self.r
             self.vy = self.vy * -1
             self.vy = self.vy + self.g
-            self.y = self.y + self.vy 
+            self.y = self.y + self.vy + 1
         
 
     def draw(self):
         pygame.draw.circle(self.screen, self.color, (self.x, self.y), self.r)
 
     def hittest(self, obj):
-        if (obj.x - self.x) ** 2 + (obj.y - self.y) ** 2 <= (obj.r + self.r) ** 2:
+        if ((obj.x - self.x) ** 2 + (obj.y - self.y) ** 2 <= (obj.r + self.r) ** 2) and type(obj) != Gun:
             return True
         else:
             return False
@@ -101,6 +104,8 @@ class BallBot(Ball):
 
 class Gun:
     def __init__(self, screen):
+        self.live = 100
+        self.r = 10
         self.screen = screen
         self.f2_power = 10
         self.f2_on = 0
@@ -108,6 +113,9 @@ class Gun:
         self.color = GREY
         self.x = 20
         self.y = 450
+        # vx и vy нужны для отправки в BotKiller для расчета упреждения
+        self.vx = 0
+        self.vy = 0
     def fire2_start(self, k):
         self.f2_on = k
 
@@ -127,10 +135,9 @@ class Gun:
             self.an = math.pi / 2
         new_ball.vx = self.f2_power * math.cos(self.an)
         new_ball.vy = -self.f2_power * math.sin(self.an)
-        new_ball.x = self.x
-        new_ball.y = self.y
+        new_ball.x = math.cos(self.an) * (self.f2_power+10) + self.x
+        new_ball.y = -(math.sin(self.an) * (self.f2_power+10)) + self.y
         balls.append(new_ball)
-        self.f2_on = 0
         self.f2_power = 10
 
     def targetting(self, x, y):
@@ -144,10 +151,18 @@ class Gun:
         if xm == self.x:
             self.an = math.pi / 2
 
-    def draw(self):
+    def draw(self, tickcounter):
+        if tickcounter >= FPS:
+            tick = FPS
+        else:
+            tick = tickcounter
         #Рисование пушки
         line(screen, self.color, (self.x, self.y), (math.cos(self.an) * (self.f2_power+10) + self.x, -(math.sin(self.an) * (self.f2_power+10)) + self.y), width=20)
-        circle(screen, RED, (self.x, self.y), 10)
+        line(screen, BLUE, (self.x - 20, self.y - 30), (self.x - 20 + int(40 * (self.live / 100)), self.y - 30), width=4)
+        rect(screen, BLACK, [(self.x - 20, self.y - 32), (41, 6)], width=1)
+        line(screen, GREEN, (self.x - 20, self.y - 38), (self.x - 20 + int(40 * (tick / FPS)), self.y - 38), width=4)
+        rect(screen, BLACK, [(self.x - 20, self.y - 40), (41, 6)], width=1)
+        circle(screen, RED, (self.x, self.y), self.r)
     def power_up(self):
         if self.f2_on:
             if self.f2_power < 100:
@@ -158,6 +173,8 @@ class Gun:
 
 
     def move(self):
+        x0 = self.x
+        y0 = self.y
         flag = False
         if flag == True:
             if self.x < WIDTH:
@@ -180,42 +197,47 @@ class Gun:
                     self.x += -(math.cos(self.an - math.pi / 2) * 20)
                     self.y += (math.sin(self.an - math.pi / 2) * 20)
                 if keyboard.is_pressed('s'):
-                    self.x += -(math.cos(self.an) * 5)
-                    self.y += math.sin(self.an) * 5
+                    self.x += -(math.cos(self.an) * 10)
+                    self.y += math.sin(self.an) * 10
                 if keyboard.is_pressed('d'):
                     self.x += math.cos(self.an-math.pi/2) * 20
                     self.y += -(math.sin(self.an-math.pi/2) * 20)
 
             else:
                 self.x = 40
+        self.vx = self.x - x0
+        self.vy = self.y - y0
 
 class BotKiller:
     def __init__(self, screen):
         self.live = 10
         self.screen = screen
-        self.f2_power = 50
-        self.f2_on = 0
         self.an = 1
         self.color = GREY
         self.x = WIDTH - 20
         self.y = 400
-        self.t = 20 # время в тиках, от него зависит скорость полета снаряда
+        self.t = 30 # время в тиках, от него зависит скорость полета снаряда
         self.r = 30
+        self.flag = False
+        self.xlnach = 0
     def fire(self, obj):
         """Выстрел мячом.
 
         Происходит при отпускании кнопки мыши.
         Начальные значения компонент скорости мяча vx и vy зависят от положения игрока.
         """
+        if self.flag == False:
+            self.xlnach = abs(self.x - obj.x)
+            self.flag = True
+        t = self.t * (abs(self.x - obj.x)/self.xlnach) * 1.2
+        if t == 0:
+            t = 1
         global balls
         new_ball = BallBot(self.screen)
-        new_ball.vx = (obj.x - self.x)/self.t + random.randint(-1, 1) * random.randint(-1, 1)
-        new_ball.vy = (obj.y - self.y)/self.t - (new_ball.g*self.t)/2 + random.randint(-1, 1) * random.randint(-1, 1)
+        new_ball.vx = (obj.x + obj.vx * t - self.x)/t + random.randint(-1, 1)
+        new_ball.vy = (obj.y + obj.vy * t - self.y)/t - (new_ball.g*t)/2 + random.randint(-1, 1)
         new_ball.x = self.x
         new_ball.y = self.y
-        self.f2_power = int(math.sqrt(new_ball.x**2 + new_ball.y**2))
-        if self.f2_power > 100:
-            self.f2_power = 100
         balls.append(new_ball)
 
 
@@ -228,22 +250,19 @@ class BotKiller:
         if obj.x == self.x:
             self.an = math.pi / 2
 
-    def draw(self):
+    def draw(self, tickcounter):
         #Рисование пушки
-        line(screen, self.color, (self.x, self.y), (math.cos(self.an) * self.f2_power + self.x, -(math.sin(self.an) * self.f2_power) + self.y), width=20)
+        tick = tickcounter
+        line(screen, self.color, (self.x, self.y), (math.cos(self.an) * 60 + self.x, -(math.sin(self.an) * 60) + self.y), width=20)
         line(screen, RED, (self.x - 20, self.y - 30), (self.x - 20 + int(40 * (self.live/10)), self.y - 30), width=4)
-        rect(screen, BLACK, [(self.x - 20, self.y - 32), (40, 6)], width=1)
+        rect(screen, BLACK, [(self.x - 20, self.y - 32), (41, 6)], width=1)
+        line(screen, GREEN, (self.x - 20, self.y - 38), (self.x - 20 + int(40 * (tick / (FPS*2))), self.y - 38), width=4)
+        rect(screen, BLACK, [(self.x - 20, self.y - 40), (41, 6)], width=1)
         circle(screen, BLUE, (self.x, self.y), 20)
 
-    def power_up(self):
-        if self.f2_power > 10:
-            self.color = (int((100 - self.f2_power)*2.5), 0, 0)
-        else:
-            self.color = GREY
-
     def move(self):
-        self.x += math.cos(self.an)*1
-        self.y -= math.sin(self.an)*1
+            self.x += math.cos(self.an)*1
+            self.y -= math.sin(self.an)*1
 
 class Target:
     def __init__(self):
@@ -328,20 +347,19 @@ class Boom:
         screen.blit(boomscr, (0, 0))
 
 gun = Gun(screen)
+targets.append(gun)
 for t in range(kt):
     t = Target()
     targets.append(t)
 
 while not finished:
     clock.tick(FPS)
-    gun.draw()
     tickcounter += 1
+    tcglobal += 1
     if schet // 1000 > schetcounter:
         schetcounter += 1
         bot = BotKiller(screen)
         targets.append(bot)
-    for t in targets:
-       t.draw()
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -349,15 +367,26 @@ while not finished:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 finished = True
-            if event.key == pygame.K_SPACE:
+            elif event.key == pygame.K_SPACE:
                 auto = True
+        elif event.type == pygame.KEYUP:
+            if event.key == pygame.K_SPACE:
+                auto = False
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            gun.fire2_start(1)
+            if event.button == 1:
+                gun.fire2_start(1)
         elif event.type == pygame.MOUSEBUTTONUP:
-            gun.fire2_end(event)
+                if event.button == 1:
+                    if tcglobal - tcshoot >= FPS:
+                        gun.fire2_end(event)
+                        tcshoot = tcglobal
+                        gun.fire2_start(0)
+                    else:
+                        gun.fire2_start(0)
+                        gun.f2_power = 10
         elif event.type == pygame.MOUSEMOTION:
             gun.targetting(event.pos[0], event.pos[1])
-
+    print(auto)
     for b in balls:
         if b.x < -10:
             balls.remove(b)
@@ -369,7 +398,8 @@ while not finished:
                     t.live -= 1
                     boom = Boom(b.x, b.y, b.r)
                     booms.append(boom)
-                    balls.remove(b)
+                    if b in balls:
+                        balls.remove(b)
                     k1 = random.randint(10, 20)
                     if t.live == 0:
                         if type(t) != BotKiller and type(b) != BallBot:
@@ -384,15 +414,20 @@ while not finished:
                         targets.remove(t)
                         t = Target()
                         targets.append(t)
+
     for t in targets:
         t.move()
         if type(t) == BotKiller:
             if tickcounter >= FPS * 2:
                 t.fire(gun)
+                tickcounter = 0
             else:
                 t.targetting(gun)
-    if tickcounter >= FPS * 2:
-        tickcounter = 0
+            t.draw(tickcounter)
+        elif type(t) == Gun:
+            t.draw(tcglobal - tcshoot)
+        else:
+            t.draw()
     for k in kapli:
         if k.y > HEIGHT:
             kapli.remove(k)
@@ -404,9 +439,7 @@ while not finished:
             booms.remove(boom)
         else:
             boom.draw()
-
     gun.power_up()
-    gun.move()
     schetv = text2.render("score:" + " " + str(schet), True, (180, 0, 0))
     screen.blit(schetv, (10, 50))
     pygame.display.update()
