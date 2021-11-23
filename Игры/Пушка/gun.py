@@ -1,7 +1,6 @@
 import math
 import random
 import keyboard
-import mouse
 from random import choice
 import pygame
 import pygame.freetype
@@ -9,6 +8,14 @@ from pygame.draw import *
 
 pygame.font.init()
 pygame.init()
+# Ускорение свободного падения
+g = 2
+# Разброс снарядов (+- по x и +- по y)
+razbros = 0
+# Количество жизний целей, бота, игрока
+livetarget = 3
+livebot = 10
+livegun = 5
 # Задаем ширину и высоту окна
 WIDTH = 1500
 HEIGHT = 700
@@ -17,23 +24,25 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 boomscr = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
 # Вывод текста
 text2 = pygame.font.Font(None, 36)
-# Различные счтечики
-schet = 0
-schetcounter = 0
+text1 = pygame.font.Font(None, 150)
+# Различные счетчики
+schet = 1000  # Счетчик счета
+schetcounter = 0  # Счетчик тысяч очков, нужно для призыва нового бота
 FPS = 60
 clock = pygame.time.Clock()
-tickcounter = 0
-tcglobal = 0
-tcshoot = 0
+tickcounter = 0  # Счетчик тиков до перезарядки
+tcglobal = 0  # Глобальный счетчик тиков
+tcshoot = 0  # Запоминает время предыдущего выстрела игрока
 # Массивы
-balls = []
-targets = []
-kapli = []
-booms = []
+balls = []  # Снаряды
+targets = []  # Пассивные цели
+kapli = []  # Капли эффекта убийства
+booms = []  # Эффект взрыва
 # Флаги
-finished = False
-kt = 5
-auto = 0  # да начнется бойня)
+Flag = True  # Изменение режима управления, сейчас управление мышкой
+finished = False  # Флаг выхода из основного цикла
+kt = 2  # Количество пассивных целей
+auto = 0  # Отвечает за включение автоматического режима стрельбы тройным снарядом
 # Цвета
 RED = 0xFF0000
 BLUE = 0x0000FF
@@ -54,9 +63,10 @@ class Ball:
         Args:
         x - начальное положение мяча по горизонтали
         y - начальное положение мяча по вертикали
+        g - ускорение свободного падения
         """
         self.screen = screen
-        self.g = 2
+        self.g = g
         self.x = 40
         self.y = 450
         self.r = random.randint(20, 20)
@@ -70,7 +80,7 @@ class Ball:
 
         Метод описывает перемещение мяча за один кадр перерисовки. То есть, обновляет значения
         self.x и self.y с учетом скоростей self.vx и self.vy, силы гравитации, действующей на мяч,
-        и стен по краям окна (размер окна 800х600).
+        и стен по краям окна. Слева и сверху стен нет.
         """
         if self.x + self.r <= WIDTH:
             self.x = self.x + self.vx
@@ -94,7 +104,8 @@ class Ball:
         pygame.draw.circle(self.screen, self.color, (self.x, self.y), self.r)
 
     def hittest(self, obj):
-        if ((obj.x - self.x) ** 2 + (obj.y - self.y) ** 2 <= (obj.r + self.r) ** 2) and type(obj) != Gun:
+        if ((obj.x - self.x) ** 2 + (obj.y - self.y) ** 2 <= (obj.r + self.r) ** 2) and type(obj) != Gun and type(
+                obj) != Ball:
             return True
         else:
             return False
@@ -102,7 +113,8 @@ class Ball:
 
 class BallBot(Ball):
     def hittest(self, obj):
-        if ((obj.x - self.x) ** 2 + (obj.y - self.y) ** 2 <= (obj.r + self.r) ** 2) and type(obj) != BotKiller:
+        if ((obj.x - self.x) ** 2 + (obj.y - self.y) ** 2 <= (obj.r + self.r) ** 2) and type(obj) != BotKiller and type(
+                obj) != BallBot:
             return True
         else:
             return False
@@ -110,7 +122,8 @@ class BallBot(Ball):
 
 class Gun:
     def __init__(self, screen):
-        self.live = 5
+        self.live = livegun
+        self.liveconst = self.live
         self.r = 10
         self.screen = screen
         self.f2_power = 10
@@ -147,10 +160,9 @@ class Gun:
         new_ball.x = math.cos(self.an) * (self.f2_power + 10) + self.x
         new_ball.y = -(math.sin(self.an) * (self.f2_power + 10)) + self.y
         balls.append(new_ball)
-        self.f2_power = 10
 
     def fire2_end2(self, px, py):
-        """Выстрел мячом.
+        """Выстрел тройным мячом.
 
         Происходит при отпускании кнопки мыши.
         Начальные значения компонент скорости мяча vx и vy зависят от положения мыши.
@@ -200,11 +212,12 @@ class Gun:
             tick = FPS
         else:
             tick = tickcounter
-        # Рисование пушки
+        '''Расчет полосочек хп и перезарядки, аналогично и у бота'''
         line(screen, self.color, (self.x, self.y),
              (math.cos(self.an) * (self.f2_power + 10) + self.x, -(math.sin(self.an) * (self.f2_power + 10)) + self.y),
              width=20)
-        line(screen, BLUE, (self.x - 20, self.y - 30), (self.x - 20 + int(40 * (self.live / 5)), self.y - 30),
+        line(screen, BLUE, (self.x - 20, self.y - 30),
+             (self.x - 20 + int(40 * (self.live / self.liveconst)), self.y - 30),
              width=4)
         rect(screen, BLACK, [(self.x - 20, self.y - 32), (41, 6)], width=1)
         line(screen, GREEN, (self.x - 20, self.y - 38), (self.x - 20 + int(40 * (tick / FPS)), self.y - 38), width=4)
@@ -212,7 +225,17 @@ class Gun:
         circle(screen, RED, (self.x, self.y), self.r)
 
     def power_up(self):
-        if self.f2_on:
+        '''Расчет силы выстрела и рисование прицела. '''
+        if self.f2_on == 0:
+            if self.f2_power < 100:
+                self.f2_power += 1
+            self.color = (int((100 - self.f2_power) * 2.5), 0, 0)
+            for i in range(1, 10):
+                circle(screen, RED, (
+                self.x + math.cos(self.an) * (self.f2_power + 10) + math.cos(self.an) * self.f2_power * i,
+                self.y - (math.sin(self.an) * (self.f2_power + 10)) - (
+                            math.sin(self.an) * self.f2_power * i - (2 * i ** 2) / 2)), 5)
+        elif self.f2_on == 1:
             if self.f2_power < 100:
                 self.f2_power += 1
             self.color = (int((100 - self.f2_power) * 2.5), 0, 0)
@@ -220,10 +243,12 @@ class Gun:
             self.color = GREY
 
     def move(self):
+        '''Два типа управления.
+        Переключаются флагом Flag в начале программы
+        '''
         x0 = self.x
         y0 = self.y
-        flag = True
-        if flag == False:
+        if Flag == False:
             if self.x < WIDTH:
                 if keyboard.is_pressed('w'):
                     self.y -= 5
@@ -238,17 +263,17 @@ class Gun:
         else:
             if self.x < WIDTH:
                 if keyboard.is_pressed('w'):
-                    self.x += math.cos(self.an) * 15
-                    self.y += -(math.sin(self.an) * 15)
+                    self.x += math.cos(self.an) * 10
+                    self.y += -(math.sin(self.an) * 10)
                 if keyboard.is_pressed('a'):
-                    self.x += -(math.cos(self.an - math.pi / 2) * 20)
-                    self.y += (math.sin(self.an - math.pi / 2) * 20)
+                    self.x += -(math.cos(self.an - math.pi / 2) * 10)
+                    self.y += (math.sin(self.an - math.pi / 2) * 10)
                 if keyboard.is_pressed('s'):
                     self.x += -(math.cos(self.an) * 10)
                     self.y += math.sin(self.an) * 10
                 if keyboard.is_pressed('d'):
-                    self.x += math.cos(self.an - math.pi / 2) * 20
-                    self.y += -(math.sin(self.an - math.pi / 2) * 20)
+                    self.x += math.cos(self.an - math.pi / 2) * 10
+                    self.y += -(math.sin(self.an - math.pi / 2) * 10)
 
             else:
                 self.x = 40
@@ -258,52 +283,71 @@ class Gun:
 
 class BotKiller:
     def __init__(self, screen):
-        self.live = 10
+        self.live = livebot
+        self.liveconst = self.live
         self.screen = screen
         self.an = 1
+        self.an2 = 0
         self.color = GREY
         self.x = WIDTH - 20
         self.y = 400
-        self.t = 30  # время в тиках, от него зависит скорость полета снаряда
+        self.t = 30  # время полета снаряда в тиках, от него зависит скорость полета снаряда
         self.r = 30
         self.flag = False
         self.xlnach = 0
+        self.vx = 0
+        self.vy = 0
 
     def fire(self, obj):
         """Выстрел мячом.
 
-        Происходит при отпускании кнопки мыши.
+        Происходит при каждые 2 секунды
         Начальные значения компонент скорости мяча vx и vy зависят от положения игрока.
         """
-        if self.flag == False:
-            self.xlnach = abs(self.x - obj.x)
-            self.flag = True
-        t = self.t * (abs(self.x - obj.x) / self.xlnach) * 1.2
-        if t == 0:
-            t = 1
         global balls
         new_ball = BallBot(self.screen)
-        new_ball.vx = (obj.x + obj.vx * t - self.x) / t + random.randint(-1, 1)
-        new_ball.vy = (obj.y + obj.vy * t - self.y) / t - (new_ball.g * t) / 2 + random.randint(-1, 1)
-        new_ball.x = self.x
-        new_ball.y = self.y
+        new_ball.vx = self.vx + random.randint(-razbros, razbros)  # Разброс
+        new_ball.vy = self.vy + random.randint(-razbros, razbros)
+        new_ball.x = math.cos(self.an2) * 60 + self.x
+        new_ball.y = -(math.sin(self.an2) * 60) + self.y
         balls.append(new_ball)
 
     def targetting(self, obj):
-        """Прицеливание. Зависит от положения игрока."""
+        """Прицеливание. Зависит от положения игрока.
+
+        Тут также расчитываются скорости снарядов по осям и угол, на который отклоняется сама пушка
+        """
         if obj.x > self.x:
             self.an = math.atan((-obj.y + self.y) / (obj.x - self.x))
         if obj.x < self.x:
             self.an = math.pi + math.atan((-obj.y + self.y) / (obj.x - self.x))
         if obj.x == self.x:
             self.an = math.pi / 2
+        if self.flag == False:
+            self.xlnach = abs(self.x - obj.x)
+            self.flag = True
+        t = self.t * (abs(self.x - obj.x) / self.xlnach) * 1.1
+        if t == 0:
+            t = 1
+        self.vx = (obj.x + obj.vx * t - (math.cos(self.an2) * 60 + self.x)) / t
+        self.vy = (obj.y + obj.vy * t - (-(math.sin(self.an2) * 60) + self.y)) / t - (g * t) / 2
+
+        xobj = self.x + self.vx * 5
+        yobj = self.y + self.vy * 5
+        if xobj > self.x:
+            self.an2 = math.atan((-yobj + self.y) / (xobj - self.x))
+        if xobj < self.x:
+            self.an2 = math.pi + math.atan((-yobj + self.y) / (xobj - self.x))
+        if xobj == self.x:
+            self.an2 = math.pi / 2
 
     def draw(self, tickcounter):
         # Рисование пушки
         tick = tickcounter
         line(screen, self.color, (self.x, self.y),
-             (math.cos(self.an) * 60 + self.x, -(math.sin(self.an) * 60) + self.y), width=20)
-        line(screen, RED, (self.x - 20, self.y - 30), (self.x - 20 + int(40 * (self.live / 10)), self.y - 30), width=4)
+             (math.cos(self.an2) * 60 + self.x, -(math.sin(self.an2) * 60) + self.y), width=20)
+        line(screen, RED, (self.x - 20, self.y - 30),
+             (self.x - 20 + int(40 * (self.live / self.liveconst)), self.y - 30), width=4)
         rect(screen, BLACK, [(self.x - 20, self.y - 32), (41, 6)], width=1)
         line(screen, GREEN, (self.x - 20, self.y - 38), (self.x - 20 + int(40 * (tick / (FPS * 2))), self.y - 38),
              width=4)
@@ -317,7 +361,7 @@ class BotKiller:
 
 class Target:
     def __init__(self):
-        self.live = 3
+        self.live = livetarget
         self.rmin = 10
         self.rmax = 50
         self.r = random.randint(self.rmin, self.rmax)
@@ -326,8 +370,8 @@ class Target:
         self.xspeed = random.randint(1, 10)
         self.yspeed = random.randint(1, 10)
         self.color = RED
-        self.pr = 0
-        self.zt = int(255 / self.live)
+        self.pr = 0  # Степень прозрачности
+        self.zt = int(255 / self.live)  # Убывание прозрачности
 
     def move(self):
         if (self.x + self.r <= WIDTH) and (self.x - self.r >= 0):
@@ -385,7 +429,7 @@ class Boom:
         self.x = xx
         self.y = yy
         self.r = int(r / 2)
-        self.dr = 1
+        self.dr = 2
         self.liveticks = 20
         self.death = 1
         self.pr = 255
@@ -411,6 +455,7 @@ while not finished:
     clock.tick(FPS)
     tickcounter += 1
     tcglobal += 1
+    # Создание нового бота
     if schet // 1000 > schetcounter:
         schetcounter += 1
         bot = BotKiller(screen)
@@ -420,6 +465,7 @@ while not finished:
         pos = pygame.mouse.get_pos()
         if event.type == pygame.QUIT:
             finished = True
+        # При нажатии на esс игра заканчивается, при нажатии на пробел меняется флаг автоматической стрельбы
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 finished = True
@@ -428,6 +474,7 @@ while not finished:
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_SPACE:
                 auto = 0
+        # Сама автоматическая стрельба
         elif auto == 1:
             gun.fire2_start(1)
             gun.f2_power = 100
@@ -436,23 +483,25 @@ while not finished:
                 gun.fire2_end2(pos[0], pos[1])
                 tcshoot = tcglobal
         elif auto == 0:
-            gun.fire2_start(0)
+            gun.fire2_start(2)
             gun.f2_power = 10
             auto = 2
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
-                gun.fire2_start(1)
+                gun.fire2_start(0)
         elif event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1:
                 if tcglobal - tcshoot >= FPS:
                     gun.fire2_end(pos[0], pos[1])
                     tcshoot = tcglobal
-                    gun.fire2_start(0)
+                    gun.fire2_start(2)
+                    gun.f2_power = 10
                 else:
-                    gun.fire2_start(0)
+                    gun.fire2_start(2)
                     gun.f2_power = 10
         else:
             gun.targetting(pos[0], pos[1])
+    # Проверка убитых юнитов, проверка попаданий, запись новых эффектов в массивы, добавление игровых очков
     for b in balls:
         if b.x < -10:
             balls.remove(b)
@@ -482,7 +531,14 @@ while not finished:
                         targets.remove(t)
                         t = Target()
                         targets.append(t)
-
+    for b1 in balls:
+        for b2 in balls:
+            if b1.hittest(b2) == True:
+                boom = Boom((b1.x + b2.x) / 2, (b1.y + b2.y) / 2, b1.r / 2)
+                booms.append(boom)
+                balls.remove(b1)
+                balls.remove(b2)
+    # Отрисовка юнитов, стрельба ботов
     for t in targets:
         t.move()
         if type(t) == BotKiller:
@@ -513,18 +569,8 @@ while not finished:
     pygame.display.update()
     screen.fill(WHITE)
     boomscr.fill(WHITE)
+# Конечная заставка
 finished = not finished
-for b in booms:
-    booms.remove(b)
-for k in kapli:
-    kapli.remove(k)
-for i in range (1, 20):
-    '''boom = Boom(WIDTH / 2 - 200, HEIGHT / 2, i * 200)
-    boom.liveticks = 40
-    kapli.append(kaplya)'''
-    kaplya = KaplyaOfTarget(WIDTH / 2 - 200, HEIGHT / 2, random.randint(-10, 10), RED, 50)
-    kapli.append(kaplya)
-#i = 1
 while not finished:
     clock.tick(FPS)
     for event in pygame.event.get():
@@ -534,26 +580,10 @@ while not finished:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 finished = True
-    line(screen, GREY, (WIDTH / 2 - 200, HEIGHT / 2), (WIDTH / 2 + 400, HEIGHT / 2), width = 100)
-    circle(screen, RED, (WIDTH / 2 - 200, HEIGHT / 2), 200)
-    '''for b in booms:
-        if i <= 3:
-            i += 1
-        else:
-            i = 1
-        if b.liveticks == 0:
-            booms.remove(b)
-            boom = Boom(WIDTH / 2 - 200, HEIGHT / 2, i * 200)
-        else:
-            b.draw()'''
-    for k in kapli:
-        if k.y > HEIGHT:
-            kapli.remove(k)
-            kaplya = KaplyaOfTarget(WIDTH / 2 - 200, HEIGHT / 2, random.randint(-10, 10), RED, 50)
-            kapli.append(kaplya)
-        else:
-            k.move()
-            k.draw()
+
+    schetv = text1.render("GAME OVER", True, (180, 0, 0))
+    screen.blit(schetv, (WIDTH / 2 - 350, HEIGHT / 2 - 50))
+
     pygame.display.update()
     screen.fill(WHITE)
 pygame.quit()
