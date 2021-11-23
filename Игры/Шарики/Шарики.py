@@ -112,17 +112,23 @@ class Ball:
 
     def motion(self):  # Расчет движения шара
 
-        if (a - self.x - self.r <= self.dx) or (self.x - self.r <= self.dx):  # Проверка на наличие ускорения на оси х
-            if min(a - self.x - self.r, self.x - self.r) == (a - self.x - self.r):
-                self.gx = abs(min(a - self.x - self.r, self.x - self.r) / 100) * -1
+        if (a - self.x - self.r <= self.dx) or (self.x - self.r <=
+                                                self.dx):  # Проверка на наличие ускорения на оси х
+            if min(a - self.x - self.r, self.x -
+                                        self.r) == (a - self.x - self.r):
+                self.gx = abs(
+                    min(a - self.x - self.r, self.x - self.r) / 100) * -1
             else:
                 self.gx = abs(min(a - self.x - self.r, self.x - self.r) / 100)
         else:
             self.gx = 0
 
-        if (b - self.y - self.r <= self.dy) or (self.y - self.r <= self.dy):  # Проверка на наличие ускорения на оси у
-            if min(b - self.y - self.r, self.y - self.r) == (b - self.y - self.r):
-                self.gy = abs(min(b - self.y - self.r, self.y - self.r) / 100) * -1
+        if (b - self.y - self.r <= self.dy) or (self.y - self.r <=
+                                                self.dy):  # Проверка на наличие ускорения на оси у
+            if min(b - self.y - self.r, self.y -
+                                        self.r) == (b - self.y - self.r):
+                self.gy = abs(
+                    min(b - self.y - self.r, self.y - self.r) / 100) * -1
             else:
                 self.gy = abs(min(b - self.y - self.r, self.y - self.r) / 100)
         else:
@@ -171,7 +177,7 @@ class Ball:
                 self.dy = self.y - self.r
 
         ellipse(screen, self.color, (
-        self.x - self.r - self.dx, self.y - self.r - self.dy, 2 * self.r + 2 * self.dx, 2 * self.r + 2 * self.dy))
+            self.x - self.r - self.dx, self.y - self.r - self.dy, 2 * self.r + 2 * self.dx, 2 * self.r + 2 * self.dy))
 
 
 # Класс объектов "Квадрат"
@@ -215,7 +221,13 @@ class Kvadrat:
             self.y = self.y + self.yspeed
 
     def draw(self):  # Рисование квадрата
-        rect(screen, self.color, (self.x - self.r, self.y - self.r, 2 * self.r, 2 * self.r))
+        rect(
+            screen,
+            self.color,
+            (self.x - self.r,
+             self.y - self.r,
+             2 * self.r,
+             2 * self.r))
 
 
 class Kaplya:
@@ -259,7 +271,13 @@ class Oskolok:
             self.yspeed = 0
 
     def draw(self):
-        rect(screen, self.color, (self.x - self.r, self.y - self.r, 2 * self.r, 2 * self.r))
+        rect(
+            screen,
+            self.color,
+            (self.x - self.r,
+             self.y - self.r,
+             2 * self.r,
+             2 * self.r))
 
 
 for i in range(kb):
@@ -274,9 +292,15 @@ while not finished3:  # Меню игры
 
     clock.tick(FPS)
 
-    text = text1.render("Тапните мышью в любом месте, чтобы продолжить", True, BLUE)
+    text = text1.render(
+        "Тапните мышью в любом месте, чтобы продолжить",
+        True,
+        BLUE)
     screensch.blit(text, (300, 500))
-    text = text1.render("Чтобы изменять музыку, используйте стрелки", True, BLUE)
+    text = text1.render(
+        "Чтобы изменять музыку, используйте стрелки",
+        True,
+        BLUE)
     screensch.blit(text, (300, 600))
     for event in pygame.event.get():
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -305,7 +329,7 @@ while not finished3:  # Меню игры
                     track = 0
             elif event.key == pygame.K_BACKSPACE:
                 ch = ch[:-1]
-            elif int(event.key)<=126 and int(event.key)>=33:
+            elif int(event.key) <= 126 and int(event.key) >= 33:
                 ch += pygame.key.name(event.key)
                 print(ch)
             pygame.mixer.music.load(MUSIC[track])
@@ -366,22 +390,26 @@ while not finished1 and timecounter <= gametime:
             if event.button == 1:
                 x, y = event.pos
                 for ball in balls:
-                    if ((ball.x - x) ** 2 + (ball.y - y) ** 2) ** 0.5 <= ball.r + ball.dxconst + killzoneb:
+                    if ((ball.x - x) ** 2 + (ball.y - y) **
+                        2) ** 0.5 <= ball.r + ball.dxconst + killzoneb:
                         zv2.play()
                         k1 = randint(5, 10)
                         for i in range(k1):
-                            kaplya = Kaplya(int(ball.x), int(ball.y), ball.xspeed, ball.color)
+                            kaplya = Kaplya(int(ball.x), int(
+                                ball.y), ball.xspeed, ball.color)
                             kapli.append(kaplya)
                         balls.remove(ball)
                         ball = Ball()
                         balls.append(ball)
                         ochki = ochki + 10
                 for kvadrat in kvadrats:
-                    if (abs(kvadrat.x - x) + abs(kvadrat.y - y)) <= 2 * kvadrat.r + killzonek:
+                    if (abs(kvadrat.x - x) + abs(kvadrat.y - y)
+                    ) <= 2 * kvadrat.r + killzonek:
                         zv3.play()
                         k2 = randint(5, 10)
                         for i in range(k2):
-                            oskolok = Oskolok(int(kvadrat.x), int(kvadrat.y), kvadrat.xspeed, kvadrat.color)
+                            oskolok = Oskolok(int(kvadrat.x), int(
+                                kvadrat.y), kvadrat.xspeed, kvadrat.color)
                             oskolki.append(oskolok)
                         kvadrats.remove(kvadrat)
                         kvadrat = Kvadrat()
@@ -397,7 +425,8 @@ while not finished1 and timecounter <= gametime:
             oskolki.remove(oskolok)
 
     schetv = text2.render("score:" + " " + str(ochki), True, (180, 0, 0))
-    timev = text2.render(str(timecounter) + "/" + str(gametime), True, (180, 0, 0))
+    timev = text2.render(str(timecounter) + "/" +
+                         str(gametime), True, (180, 0, 0))
     screensch.blit(schetv, (10, 50))
     screensch.blit(timev, (10, 100))
     for ball in balls:
@@ -435,7 +464,7 @@ while not finished2:
                 finished2 = True
             elif event.key == pygame.K_BACKSPACE:
                 name = name[:-1]
-            elif int(event.key)<=126 and int(event.key)>=33 or int(event.key)<=1103 and int(event.key)>=1040:
+            elif int(event.key) <= 126 and int(event.key) >= 33 or int(event.key) <= 1103 and int(event.key) >= 1040:
                 name += pygame.key.name(event.key)
         my_font.render_to(screen, (100, 140), name, BLUE)
         pygame.display.update()
@@ -451,7 +480,8 @@ for k, v in data.items():
     rec.append([v, k])
 rec.sort(reverse=True)
 for i in rec:
-    my_font.render_to(screen, (a/2-50, h), i[1] + ":" + " " + str(i[0]), (255, 255, 255))
+    my_font.render_to(screen, (a / 2 - 50, h),
+                      i[1] + ":" + " " + str(i[0]), (255, 255, 255))
     h += 30
 pygame.display.update()
 finished = False
