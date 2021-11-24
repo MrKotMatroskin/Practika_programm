@@ -10,7 +10,7 @@ pygame.mixer.pre_init(44100, -16, 1, 512)
 pygame.font.init()
 pygame.init()
 # Ускорение свободного падения
-g = 2
+g = 3
 # Громкость музыки и выбор музыки (менять не надо)
 track = 0
 vol = 0.5
@@ -46,7 +46,7 @@ booms = []  # Эффект взрыва
 Ps = True  # Флаг паузы музыки
 Flag = True  # Изменение режима управления, сейчас управление мышкой
 finished = False  # Флаг выхода из основного цикла
-kt = 2  # Количество пассивных целейd
+kt = 5  # Количество пассивных целей
 auto = 0  # Отвечает за включение автоматического режима стрельбы тройным снарядом
 # Цвета
 RED = 0xFF0000
@@ -148,7 +148,8 @@ class Gun:
         # vx и vy нужны для отправки в BotKiller для расчета упреждения
         self.vx = 0
         self.vy = 0
-
+        self.mx = 0
+        self.my = 0
     def fire2_start(self, k):
         self.f2_on = k
 
@@ -213,6 +214,8 @@ class Gun:
         """Прицеливание. Зависит от положения мыши."""
         xm = x
         ym = y
+        self.mx = x
+        self.my = y
         if xm > self.x:
             self.an = math.atan((-ym + self.y) / (xm - self.x))
         if xm < self.x:
@@ -247,7 +250,7 @@ class Gun:
                 circle(screen, RED, (
                     self.x + math.cos(self.an) * (self.f2_power + 10) + math.cos(self.an) * self.f2_power * i,
                     self.y - (math.sin(self.an) * (self.f2_power + 10)) - (
-                            math.sin(self.an) * self.f2_power * i - (2 * i ** 2) / 2)), 5)
+                            math.sin(self.an) * self.f2_power * i - (g * i ** 2) / 2)), 5)
         elif self.f2_on == 1:
             if self.f2_power < 100:
                 self.f2_power += 1
@@ -275,18 +278,22 @@ class Gun:
                 self.x = 40
         else:
             if self.x < WIDTH:
-                if keyboard.is_pressed('w'):
-                    self.x += math.cos(self.an) * 10
-                    self.y += -(math.sin(self.an) * 10)
-                if keyboard.is_pressed('a'):
-                    self.x += -(math.cos(self.an - math.pi / 2) * 10)
-                    self.y += (math.sin(self.an - math.pi / 2) * 10)
-                if keyboard.is_pressed('s'):
-                    self.x += -(math.cos(self.an) * 10)
-                    self.y += math.sin(self.an) * 10
-                if keyboard.is_pressed('d'):
-                    self.x += math.cos(self.an - math.pi / 2) * 10
-                    self.y += -(math.sin(self.an - math.pi / 2) * 10)
+                if (self.mx - self.x) ** 2 + (self.my - self.y) ** 2 >= 900:
+                    if keyboard.is_pressed('w'):
+                        self.x += math.cos(self.an) * 10
+                        self.y += -(math.sin(self.an) * 10)
+                    if keyboard.is_pressed('a'):
+                        self.x += -(math.cos(self.an - math.pi / 2) * 10)
+                        self.y += (math.sin(self.an - math.pi / 2) * 10)
+                    if keyboard.is_pressed('s'):
+                        self.x += -(math.cos(self.an) * 10)
+                        self.y += math.sin(self.an) * 10
+                    if keyboard.is_pressed('d'):
+                        self.x += math.cos(self.an - math.pi / 2) * 10
+                        self.y += -(math.sin(self.an - math.pi / 2) * 10)
+                else:
+                    self.x += 0
+                    self.y += 0
 
             else:
                 self.x = 40
@@ -310,11 +317,12 @@ class BotKiller:
         self.xlnach = 0
         self.vx = 0
         self.vy = 0
-
-    def fire(self, obj):
+        self.gamerx = 0
+        self.gamery = 0
+    def fire(self           ):
         """Выстрел мячом.
 
-        Происходит при каждые 2 секунды
+        Происходит каждые 2 секунды
         Начальные значения компонент скорости мяча vx и vy зависят от положения игрока.
         """
         global balls
@@ -330,6 +338,8 @@ class BotKiller:
 
         Тут также расчитываются скорости снарядов по осям и угол, на который отклоняется сама пушка
         """
+        self.gamerx = obj.x
+        self.gamery = obj.y
         if obj.x > self.x:
             self.an = math.atan((-obj.y + self.y) / (obj.x - self.x))
         if obj.x < self.x:
@@ -344,7 +354,7 @@ class BotKiller:
             t = 1
         self.vx = (obj.x + obj.vx * t - (math.cos(self.an2) * 60 + self.x)) / t
         self.vy = (obj.y + obj.vy * t - (-(math.sin(self.an2) * 60) + self.y)) / t - (g * t) / 2
-
+        circle(screen, RED, (obj.x + obj.vx * t, obj.y + obj.vy * t), 10)
         xobj = self.x + self.vx * 5
         yobj = self.y + self.vy * 5
         if xobj > self.x:
@@ -368,8 +378,12 @@ class BotKiller:
         circle(screen, BLUE, (self.x, self.y), 20)
 
     def move(self):
-        self.x += math.cos(self.an) * 1
-        self.y -= math.sin(self.an) * 1
+        if (self.gamerx - self.x) ** 2 + (self.gamery - self.y) ** 2 >= 90000:
+            self.x += math.cos(self.an) * 1
+            self.y -= math.sin(self.an) * 1
+        else:
+            self.x += 0
+            self.y -= 0
 
 
 class Target:
@@ -592,8 +606,9 @@ while not finished:
         t.move()
         if type(t) == BotKiller:
             if tickcounter >= FPS * 2:
-                t.fire(gun)
+                t.fire()
                 tickcounter = 0
+                pulemet.play()
             else:
                 t.targetting(gun)
             t.draw(tickcounter)
