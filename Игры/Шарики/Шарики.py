@@ -25,7 +25,7 @@ finished4 = False
 
 # Громкость музыки и выбор музыки
 track = 0
-vol = 0.5
+vol = 0.1
 
 # Задание параметров текста
 my_font = pygame.freetype.SysFont(None, 35)
@@ -63,8 +63,8 @@ Ps = False
 q = 0
 
 # Размеры экрана
-a = 1920
-b = 1080
+a = 1500
+b = 700
 
 # Частота обновления экрана и ширина/ высота
 screen = pygame.display.set_mode((a, b))
@@ -296,12 +296,12 @@ while not finished3:  # Меню игры
         "Тапните мышью в любом месте, чтобы продолжить",
         True,
         BLUE)
-    screensch.blit(text, (300, 500))
+    screensch.blit(text, (a / 2 - 700, b / 2))
     text = text1.render(
         "Чтобы изменять музыку, используйте стрелки",
         True,
         BLUE)
-    screensch.blit(text, (300, 600))
+    screensch.blit(text, (a / 2 - 700, b / 2 + 70))
     for event in pygame.event.get():
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
@@ -312,29 +312,31 @@ while not finished3:  # Меню игры
                     vol = vol + 0.1
                 else:
                     vol = 1
+                pygame.mixer.music.set_volume(vol)
             elif event.key == pygame.K_DOWN:
                 if vol > 0:
                     vol = vol - 0.1
                 else:
                     vol = 0
+                pygame.mixer.music.set_volume(vol)
             elif event.key == pygame.K_RIGHT:
                 if track < 3:
                     track = track + 1
                 else:
                     track = 3
+                pygame.mixer.music.load(MUSIC[track])
+                pygame.mixer.music.play(-1)
             elif event.key == pygame.K_LEFT:
                 if track > 0:
                     track = track - 1
                 else:
                     track = 0
+                pygame.mixer.music.load(MUSIC[track])
+                pygame.mixer.music.play(-1)
             elif event.key == pygame.K_BACKSPACE:
                 ch = ch[:-1]
             elif int(event.key) <= 126 and int(event.key) >= 33:
                 ch += pygame.key.name(event.key)
-                print(ch)
-            pygame.mixer.music.load(MUSIC[track])
-            pygame.mixer.music.play(-1)
-            pygame.mixer.music.set_volume(vol)
             if event.key == pygame.K_SPACE:
                 Ps = not Ps
                 if Ps:
@@ -362,24 +364,27 @@ while not finished1 and timecounter <= gametime:
                         vol = vol + 0.1
                     else:
                         vol = 1
+                    pygame.mixer.music.set_volume(vol)
                 elif event.key == pygame.K_DOWN:
                     if vol > 0:
                         vol = vol - 0.1
                     else:
                         vol = 0
+                    pygame.mixer.music.set_volume(vol)
                 elif event.key == pygame.K_RIGHT:
                     if track < 3:
                         track = track + 1
                     else:
                         track = 3
+                    pygame.mixer.music.load(MUSIC[track])
+                    pygame.mixer.music.play(-1)
                 elif event.key == pygame.K_LEFT:
                     if track > 0:
                         track = track - 1
                     else:
                         track = 0
-                pygame.mixer.music.load(MUSIC[track])
-                pygame.mixer.music.play(-1)
-                pygame.mixer.music.set_volume(vol)
+                    pygame.mixer.music.load(MUSIC[track])
+                    pygame.mixer.music.play(-1)
                 if event.key == pygame.K_SPACE:
                     Ps = not Ps
                     if Ps:
@@ -427,8 +432,8 @@ while not finished1 and timecounter <= gametime:
     schetv = text2.render("score:" + " " + str(ochki), True, (180, 0, 0))
     timev = text2.render(str(timecounter) + "/" +
                          str(gametime), True, (180, 0, 0))
-    screensch.blit(schetv, (10, 50))
-    screensch.blit(timev, (10, 100))
+    screensch.blit(schetv, (100, 50))
+    screensch.blit(timev, (100, 100))
     for ball in balls:
         ball.motion()
         ball.draw()

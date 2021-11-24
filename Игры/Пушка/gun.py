@@ -6,10 +6,14 @@ import pygame
 import pygame.freetype
 from pygame.draw import *
 
+pygame.mixer.pre_init(44100, -16, 1, 512)
 pygame.font.init()
 pygame.init()
 # Ускорение свободного падения
 g = 2
+# Громкость музыки и выбор музыки (менять не надо)
+track = 0
+vol = 0.5
 # Разброс снарядов (+- по x и +- по y)
 razbros = 0
 # Количество жизний целей, бота, игрока
@@ -26,7 +30,7 @@ boomscr = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
 text2 = pygame.font.Font(None, 36)
 text1 = pygame.font.Font(None, 150)
 # Различные счетчики
-schet = 1000  # Счетчик счета
+schet = 0  # Счетчик счета
 schetcounter = 0  # Счетчик тысяч очков, нужно для призыва нового бота
 FPS = 60
 clock = pygame.time.Clock()
@@ -39,9 +43,10 @@ targets = []  # Пассивные цели
 kapli = []  # Капли эффекта убийства
 booms = []  # Эффект взрыва
 # Флаги
+Ps = True  # Флаг паузы музыки
 Flag = True  # Изменение режима управления, сейчас управление мышкой
 finished = False  # Флаг выхода из основного цикла
-kt = 2  # Количество пассивных целей
+kt = 2  # Количество пассивных целейd
 auto = 0  # Отвечает за включение автоматического режима стрельбы тройным снарядом
 # Цвета
 RED = 0xFF0000
@@ -54,6 +59,14 @@ BLACK = (0, 0, 0)
 WHITE = 0xFFFFFF
 GREY = 0x7D7D7D
 GAME_COLORS = [RED, BLUE, YELLOW, GREEN, MAGENTA, CYAN]
+# Музыка и звуки
+pulemet = pygame.mixer.Sound("Звуки/pulemet.ogg")
+pulemet.set_volume(0.1)
+fon1 = "Звуки/фон1.ogg"
+fon2 = "Звуки/фон2.ogg"
+fon3 = "Звуки/фон3.ogg"
+fon4 = "Звуки/фон4.ogg"
+MUSIC = [fon1, fon2, fon3, fon4]
 
 
 class Ball:
@@ -232,8 +245,8 @@ class Gun:
             self.color = (int((100 - self.f2_power) * 2.5), 0, 0)
             for i in range(1, 10):
                 circle(screen, RED, (
-                self.x + math.cos(self.an) * (self.f2_power + 10) + math.cos(self.an) * self.f2_power * i,
-                self.y - (math.sin(self.an) * (self.f2_power + 10)) - (
+                    self.x + math.cos(self.an) * (self.f2_power + 10) + math.cos(self.an) * self.f2_power * i,
+                    self.y - (math.sin(self.an) * (self.f2_power + 10)) - (
                             math.sin(self.an) * self.f2_power * i - (2 * i ** 2) / 2)), 5)
         elif self.f2_on == 1:
             if self.f2_power < 100:
@@ -429,8 +442,8 @@ class Boom:
         self.x = xx
         self.y = yy
         self.r = int(r / 2)
-        self.dr = 2
-        self.liveticks = 20
+        self.dr = 7
+        self.liveticks = 8
         self.death = 1
         self.pr = 255
         self.zt = int(self.pr / (self.liveticks / self.death))
@@ -471,6 +484,38 @@ while not finished:
                 finished = True
             elif event.key == pygame.K_SPACE:
                 auto = 1
+            elif event.key == pygame.K_UP:
+                if vol < 1:
+                    vol = vol + 0.1
+                else:
+                    vol = 1
+                pygame.mixer.music.set_volume(vol)
+            elif event.key == pygame.K_DOWN:
+                if vol > 0:
+                    vol = vol - 0.1
+                else:
+                    vol = 0
+                pygame.mixer.music.set_volume(vol)
+            elif event.key == pygame.K_RIGHT:
+                if track < 3:
+                    track = track + 1
+                else:
+                    track = 3
+                pygame.mixer.music.load(MUSIC[track])
+                pygame.mixer.music.play(-1)
+            elif event.key == pygame.K_LEFT:
+                if track > 0:
+                    track = track - 1
+                else:
+                    track = 0
+                pygame.mixer.music.load(MUSIC[track])
+                pygame.mixer.music.play(-1)
+            if event.key == pygame.K_p:
+                Ps = not Ps
+                if Ps:
+                    pygame.mixer.music.pause()
+                else:
+                    pygame.mixer.music.unpause()
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_SPACE:
                 auto = 0
@@ -479,9 +524,10 @@ while not finished:
             gun.fire2_start(1)
             gun.f2_power = 100
             gun.targetting(pos[0], pos[1])
-            if tcglobal - tcshoot >= FPS / 5:
+            if tcglobal - tcshoot >= FPS / 10:
                 gun.fire2_end2(pos[0], pos[1])
                 tcshoot = tcglobal
+                pulemet.play()
         elif auto == 0:
             gun.fire2_start(2)
             gun.f2_power = 10
@@ -496,11 +542,14 @@ while not finished:
                     tcshoot = tcglobal
                     gun.fire2_start(2)
                     gun.f2_power = 10
+                    pulemet.play()
                 else:
                     gun.fire2_start(2)
                     gun.f2_power = 10
+
         else:
             gun.targetting(pos[0], pos[1])
+
     # Проверка убитых юнитов, проверка попаданий, запись новых эффектов в массивы, добавление игровых очков
     for b in balls:
         if b.x < -10:
@@ -515,7 +564,7 @@ while not finished:
                     booms.append(boom)
                     if b in balls:
                         balls.remove(b)
-                    k1 = random.randint(10, 20)
+                    k1 = random.randint(5, 10)
                     if t.live == 0:
                         if type(t) != BotKiller and type(t) != Gun:
                             for i in range(k1):
